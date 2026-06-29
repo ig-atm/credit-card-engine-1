@@ -140,8 +140,9 @@ function QuickAddForm({ onClose, activeCardId }: QuickAddFormProps) {
                 : 'text-ink-tertiary hover:text-ink-secondary'
             )}
           >
-            📱 Paste SMS
+            Paste SMS
           </button>
+
         </div>
 
         {tab === 'manual' ? (
