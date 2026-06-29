@@ -4,6 +4,8 @@ import { X, Send, Bot, ChevronDown, Loader2 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { generateTaqdeerResponse, type TaqdeerMessage } from '../lib/taqdeerEngine';
 
+import { useDashboardStore } from '../../dashboard/store/dashboardStore';
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  QUICK SUGGESTION CHIPS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -134,7 +136,8 @@ export function TaqdeerPanel() {
     // Simulate AI thinking delay (400–900ms)
     const delay = 400 + Math.random() * 500;
     setTimeout(() => {
-      const { content } = generateTaqdeerResponse(trimmed);
+      const userCards = useDashboardStore.getState().userCards;
+      const { content } = generateTaqdeerResponse(trimmed, userCards);
       const aiMsg: TaqdeerMessage = {
         id: (Date.now() + 1).toString(),
         role: 'ai',
@@ -145,6 +148,7 @@ export function TaqdeerPanel() {
       setIsTyping(false);
     }, delay);
   }
+
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

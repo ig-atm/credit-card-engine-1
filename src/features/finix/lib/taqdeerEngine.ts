@@ -1,124 +1,350 @@
 /**
- * Taqdeer AI engine — intent detection + response generation.
- * Ported from Adityasinha2289/credit-card-engine backend/services/taqdeer_engine.py
- * and backend/finix_v1/services/taqdeer_service.py
- *
- * Runs fully client-side — no backend required.
+ * taqdeerEngine.ts
+ * Smart client-side credit card reasoning engine.
+ * Parses user questions regarding merchants, banks, lounge access, fees,
+ * and credit score health, and cross-references with the user's actual wallet.
  */
 
 import { CARD_DATASET, type FinixCard, type SpendCategory } from '../data/cardDataset';
 import { detectCategory, POPULAR_MERCHANTS } from '../data/merchantMap';
+import type { CardData } from '../../cards/types/card.types';
+
+export interface TaqdeerMessage {
+  id: string;
+  role: 'user' | 'ai';
+  content: string;
+  timestamp: Date;
+  cards?: FinixCard[];
+}
+
+// Helper to normalize card names for matching
+function normalizeText(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+// Map spend category to user-friendly label
+const CATEGORY_LABELS: Record<SpendCategory, string> = {
+  dining: 'Dining',
+  travel: 'Travel',
+  groceries: 'Groceries',
+  shopping: 'Shopping',
+  fuel: 'Fuel',
+  entertainment: 'Entertainment',
+  utilities: 'Utilities',
+  transport: 'Transport',
+  health: 'Health',
+  subscriptions: 'Subscriptions',
+  other: 'General Spend',
+};
+
+// Map spend category to emojis
+const CATEGORY_EMOJIS: Record<SpendCategory, string> = {
+  dining: '🍳',
+  travel: '✈️',
+  groceries: '🛍️',
+  shopping: '🛒',
+  fuel: '⛽',
+  entertainment: '🎬',
+  utilities: '⚡',
+  transport: '🚕',
+  health: '💊',
+  subscriptions: '🎵',
+  other: '📌',
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  INTENT PATTERNS
+//  INTENT DETECTION LOGIC
 // ─────────────────────────────────────────────────────────────────────────────
 
-const INTENT_PATTERNS: { intent: string; patterns: string[] }[] = [
-  {
-    intent: 'best_card_for_merchant',
-    patterns: [
-      'which card', 'best card for', 'what card', 'card for', 'use for', 'pay for',
-      'card to use', 'use on', 'which to use',
-    ],
-  },
-  {
-    intent: 'wallet_health',
-    patterns: [
-      'wallet score', 'wallet health', 'wallet status', 'optimize wallet',
-      'my wallet', 'wallet analysis',
-    ],
-  },
-  {
-    intent: 'cibil_score',
-    patterns: [
-      'cibil', 'credit score', 'improve score', 'credit rating', 'my score',
-    ],
-  },
-  {
-    intent: 'reward_query',
-    patterns: [
-      'reward', 'cashback', 'points', 'how many points', 'earn',
-      'how much cashback', 'benefits',
-    ],
-  },
-  {
-    intent: 'recommendation',
-    patterns: [
-      'recommend', 'suggest', 'which card should', 'new card', 'best card for me',
-      'apply for', 'should i get',
-    ],
-  },
-  {
-    intent: 'bill_payment',
-    patterns: [
-      'pay bill', 'bill payment', 'due', 'outstanding', 'payment due',
-      'how much to pay', 'minimum payment',
-    ],
-  },
-  {
-    intent: 'travel',
-    patterns: [
-      'flight', 'travel', 'trip', 'lounge', 'airport', 'airline',
-      'air india', 'indigo', 'makemytrip', 'irctc',
-    ],
-  },
-  {
-    intent: 'dining',
-    patterns: [
-      'zomato', 'swiggy', 'food', 'dining', 'restaurant', 'eat',
-      'blinkit', 'zepto', 'bigbasket',
-    ],
-  },
-  {
-    intent: 'shopping',
-    patterns: [
-      'amazon', 'flipkart', 'myntra', 'shopping', 'buy', 'purchase',
-      'online shopping', 'ajio', 'nykaa',
-    ],
-  },
-  {
-    intent: 'fuel',
-    patterns: [
-      'petrol', 'diesel', 'fuel', 'bpcl', 'hpcl', 'pump',
-    ],
-  },
-  {
-    intent: 'greet',
-    patterns: [
-      'hi', 'hello', 'hey', 'what can you do', 'help', 'what are you',
-      'who are you', 'taqdeer',
-    ],
-  },
-];
+export function generateTaqdeerResponse(
+  query: string,
+  userCards: CardData[] = [],
+): { content: string; cards?: FinixCard[] } {
+  const lower = query.toLowerCase().trim();
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  INTENT DETECTION
-// ─────────────────────────────────────────────────────────────────────────────
+  // 1. GREETING & GENERAL HELP
+  if (/^(hi|hello|hey|greetings|help|who are you|what can you do|taqdeer)/i.test(lower)) {
+    return {
+      content: `👋 **Hey! I'm Taqdeer, your Credit Intelligence Assistant!** 🤖
 
-function detectIntent(query: string): string {
-  const lower = query.toLowerCase();
+I am connected to your wallet and can analyze 130+ cards to help you maximize savings. Ask me questions like:
+• 🍳 *"Which card should I use at Swiggy?"*
+• ✈️ *"Which cards offer airport lounge access?"*
+• 💳 *"What is my wallet health score?"*
+• 💰 *"Show me lifetime free credit cards"*
+• 📈 *"How do I improve my CIBIL score?"*
 
-  for (const { intent, patterns } of INTENT_PATTERNS) {
-    if (patterns.some((p) => lower.includes(p))) {
-      return intent;
+What can I optimize for you today?`,
+    };
+  }
+
+  // 2. DETECT CIBIL SCORE / CREDIT HEALTH
+  if (/\b(cibil|credit score|improve score|credit rating|my score|utilization|usage)\b/i.test(lower)) {
+    // Calculate actual utilization if we have cards
+    let utilizationMsg = "";
+    if (userCards.length > 0) {
+      // We don't have the creditAccounts directly here, but we can compute it if we want
+      // or give generic advice. Let's look up if user has high limits.
+      const totalLimit = userCards.reduce((sum, c) => sum + c.creditLimit, 0) / 100;
+      const totalAvail = userCards.reduce((sum, c) => sum + c.availableCredit, 0) / 100;
+      const totalBalance = Math.max(0, totalLimit - totalAvail);
+      const utilPct = totalLimit > 0 ? Math.round((totalBalance / totalLimit) * 100) : 0;
+
+      utilizationMsg = `\n\n📊 **Your Real-time Utilization Stats:**
+• Total Wallet Limit: **₹${totalLimit.toLocaleString('en-IN')}**
+• Total Outstanding: **₹${totalBalance.toLocaleString('en-IN')}**
+• Current Utilization: **${utilPct}%** ${utilPct > 30 ? '⚠️ *(High! Keep below 30% to avoid CIBIL drops)*' : '🟢 *(Healthy! Below 30% target)*'}`;
+    }
+
+    return {
+      content: `📈 **CIBIL Credit Score Optimization Guide**
+
+Your CIBIL score is evaluated based on these key factors:
+1. **Payment History (35%)** — Pay card bills on time. Even one late payment can drop your score by 50+ points.
+2. **Credit Utilization Ratio (30%)** — The percentage of your credit limit you actually use. Always keep this **under 30%**.
+3. **Credit History Age (15%)** — Older credit lines raise your score. Do not close your oldest active card.
+4. **Credit Mix (15%)** — A healthy mix of secured (loans) and unsecured (cards) debt.
+5. **New Inquiries (5%)** — Multiple credit searches within a short period trigger hard inquiries.${utilizationMsg}
+
+💡 **Tip:** Pay outstanding balances 3-5 days before the bill generation date so that a lower balance is reported to credit bureaus!`,
+    };
+  }
+
+  // 3. WALLET HEALTH ANALYZER
+  if (/\b(wallet health|wallet score|wallet status|optimize wallet|my wallet|wallet analysis)\b/i.test(lower)) {
+    if (userCards.length === 0) {
+      return {
+        content: `📊 **Your Wallet Health Score: 0/100**
+
+⚠️ **Your wallet is currently empty!**
+Please add one or more credit cards on the **Dashboard** home screen to evaluate your spending coverage and reward multipliers.`,
+      };
+    }
+
+    // Evaluate category coverage in wallet
+    const categoriesToTest: SpendCategory[] = ['dining', 'travel', 'shopping', 'groceries', 'fuel', 'utilities'];
+    const coverageDetails: string[] = [];
+    let coveredCount = 0;
+
+    categoriesToTest.forEach((cat) => {
+      let maxRate = 0;
+      userCards.forEach((uc) => {
+        // Find match in dataset
+        const datasetCard = CARD_DATASET.find((dc) => dc.id === uc.id);
+        if (datasetCard) {
+          const rate = datasetCard.rewards.find((r) => r.category === cat)?.rate ?? datasetCard.baseRewardRate;
+          if (rate > maxRate) maxRate = rate;
+        } else {
+          // fallback base rate
+          if (1 > maxRate) maxRate = 1;
+        }
+      });
+
+      const emoji = CATEGORY_EMOJIS[cat];
+      const label = CATEGORY_LABELS[cat];
+      if (maxRate >= 3) {
+        coveredCount += 2;
+        coverageDetails.push(`• 🟢 **${label} ${emoji}**: Excellent coverage (Max multiplier: **${maxRate}%**).`);
+      } else if (maxRate >= 1.5) {
+        coveredCount += 1.2;
+        coverageDetails.push(`• 🟡 **${label} ${emoji}**: Average coverage (Max multiplier: **${maxRate}%**). Consider upgrading.`);
+      } else {
+        coverageDetails.push(`• 🔴 **${label} ${emoji}**: Poor coverage (Max multiplier: **${maxRate}%**). You are missing out on cashback!`);
+      }
+    });
+
+    const finalScore = Math.min(100, Math.round((coveredCount / 12) * 100));
+
+    // Recommend top cards to improve score
+    const suggestions: string[] = [];
+    if (!userCards.some(c => c.id.includes('fuel'))) {
+      suggestions.push('• **ICICI HPCL Super Saver** (4% back on Fuel + surcharge waivers)');
+    }
+    if (!userCards.some(c => c.id.includes('amazon') || c.id.includes('shopping'))) {
+      suggestions.push('• **Amazon Pay ICICI** (5% back on shopping for Prime members)');
+    }
+    if (!userCards.some(c => c.id.includes('black') || c.id.includes('diners'))) {
+      suggestions.push('• **HDFC Diners Club Black** (Premium dining/travel multiplier up to 10%)');
+    }
+
+    return {
+      content: `📊 **Your Wallet Health Score: ${finalScore}/100**
+
+Here is the breakdown of your reward category coverage:
+${coverageDetails.join('\n')}
+
+${suggestions.length > 0 ? `🚀 **How to improve your score:**\nAdd one of these cards to fill the gaps in your rewards coverage:\n${suggestions.join('\n')}` : '🎉 **Outstanding!** Your wallet has excellent reward coverage across all key spending categories!'}`,
+    };
+  }
+
+  // 4. AIRPORT LOUNGE ACCESS / TRAVEL
+  if (/\b(lounge|airport|flight|travel|trip|airline)\b/i.test(lower)) {
+    const userLoungeCards = userCards
+      .map((uc) => {
+        const dc = CARD_DATASET.find((c) => c.id === uc.id);
+        return { label: uc.label || dc?.name, visits: dc?.loungeAccess ?? 0 };
+      })
+      .filter((c) => c.visits > 0);
+
+    const topLoungeCards = CARD_DATASET.filter((c) => (c.loungeAccess ?? 0) >= 8)
+      .sort((a, b) => (b.loungeAccess ?? 0) - (a.loungeAccess ?? 0))
+      .slice(0, 3);
+
+    let userCardsMsg = "";
+    if (userLoungeCards.length > 0) {
+      userCardsMsg = `💳 **Lounge access in your wallet:**\n${userLoungeCards.map((c) => `• **${c.label}**: ${c.visits} complimentary visits/year`).join('\n')}\n\n`;
+    } else {
+      userCardsMsg = `💳 **Lounge access in your wallet:**\n• ❌ None of your active cards offer complimentary airport lounge access.\n\n`;
+    }
+
+    return {
+      content: `✈️ **Airport Lounge Access Analysis**
+
+${userCardsMsg}🏆 **Top cards in the market for lounge access:**
+${topLoungeCards.map((c) => `• **${c.bank} ${c.name}**: ${c.loungeAccess} visits/year (Annual Fee: ₹${c.annualFee})`).join('\n')}
+
+💡 *Note: Most cards require a minimum spend of ₹10,000 to ₹35,000 in the previous calendar quarter to unlock complimentary lounge access visits.*`,
+      cards: topLoungeCards,
+    };
+  }
+
+  // 5. LIFETIME FREE CARDS / ANNUAL FEES
+  if (/\b(free|annual fee|charges|lifetime free|waiver|no fee)\b/i.test(lower)) {
+    const freeCards = CARD_DATASET.filter((c) => c.annualFee === 0).slice(0, 4);
+
+    return {
+      content: `💰 **Lifetime Free & Fee Waiver Recommendations**
+
+Avoid annual maintenance charges! Here are the top **Lifetime Free** credit cards (No annual fees ever):
+${freeCards.map((c) => `• **${c.bank} ${c.name}**: Base reward rate ${c.baseRewardRate}% (Highlights: ${c.highlights.slice(0, 2).join(', ')})`).join('\n')}
+
+💡 **How Fee Waivers Work:**
+Most premium credit cards waive the annual fee if you cross a specific spend milestone. For example:
+• **Axis Atlas**: Annual fee ₹5,000 waived on spending ₹3 Lakhs/year.
+• **Indian Bank Select**: Annual fee ₹500 waived on spending ₹50,000/year.`,
+      cards: freeCards,
+    };
+  }
+
+  // 6. CHECK FOR SPECIFIC CARD/BANK IN QUERY
+  let foundCard: FinixCard | undefined;
+  for (const c of CARD_DATASET) {
+    const cardNormalized = normalizeText(c.name);
+    const bankNormalized = normalizeText(c.bank);
+    const queryNormalized = normalizeText(lower);
+
+    if (queryNormalized.includes(cardNormalized) || (queryNormalized.includes(bankNormalized) && queryNormalized.includes(normalizeText(c.name.replace(c.bank, ''))))) {
+      foundCard = c;
+      break;
     }
   }
 
-  return 'general';
-}
+  if (foundCard) {
+    const userHasIt = userCards.some((uc) => uc.id === foundCard?.id);
+    return {
+      content: `🃏 **Card Analysis: ${foundCard.bank} ${foundCard.name}**
+${userHasIt ? '🟢 *You have this card linked in your wallet!*' : '⚪ *This card is not in your wallet.*'}
 
-function extractMerchant(query: string): string | null {
-  const lower = query.toLowerCase();
-  for (const m of POPULAR_MERCHANTS) {
-    if (lower.includes(m.name.toLowerCase())) return m.name;
+• **Annual Fee**: ${foundCard.annualFee === 0 ? 'Lifetime Free' : `₹${foundCard.annualFee}`}
+• **Lounge Access**: ${foundCard.loungeAccess ? `${foundCard.loungeAccess} visits/year` : 'Not available'}
+• **Base Reward Rate**: ${foundCard.baseRewardRate}%
+• **Welcome Bonus**: ${foundCard.welcomeBonus || 'None'}
+• **Highlights**: ${foundCard.highlights.join(', ')}
+
+📊 **Rewards Rates**:
+${foundCard.rewards.map((r) => `• ${CATEGORY_EMOJIS[r.category] || '📌'} ${CATEGORY_LABELS[r.category]}: **${r.rate}%**`).join('\n')}
+
+${userHasIt ? '' : `💡 *Cross-reference this card with your profile in the **Analyzer** tab to see if you are eligible!*`}`,
+      cards: [foundCard],
+    };
   }
-  return null;
+
+  // 7. CHECK FOR BANK NAME ALONE
+  const banks = ['hdfc', 'sbi', 'icici', 'axis', 'yes bank', 'yes', 'indusind', 'canara', 'rbl', 'kotak', 'au', 'bob', 'pnb'];
+  const matchedBank = banks.find((b) => lower.includes(b));
+  if (matchedBank) {
+    const bankNorm = matchedBank === 'yes' ? 'yes bank' : matchedBank;
+    const bankCards = CARD_DATASET.filter((c) => c.bank.toLowerCase().includes(bankNorm)).slice(0, 3);
+    if (bankCards.length > 0) {
+      return {
+        content: `🏦 **Top credit cards offered by ${bankCards[0].bank}:**
+
+${bankCards.map((c, i) => `${i + 1}. **${c.name}** (Fee: ₹${c.annualFee})
+   • Base rate: ${c.baseRewardRate}% | Lounge: ${c.loungeAccess ? `${c.loungeAccess}/yr` : 'No'}
+   • Benefits: ${c.highlights.slice(0, 2).join(', ')}`).join('\n\n')}
+
+💡 *Compare these cards inside the **Analyzer** tab to view personalized reward scores based on your credit eligibility.*`,
+        cards: bankCards,
+      };
+    }
+  }
+
+  // 8. SPECIFIC MERCHANT OR GENERAL SPEND OPTIMIZATION
+  const merchant = extractMerchant(lower);
+  const category = merchant
+    ? detectCategory(merchant)
+    : detectCategory(lower);
+
+  const emoji = CATEGORY_EMOJIS[category] || '🍳';
+  const displayCategory = CATEGORY_LABELS[category] || 'General spend';
+
+  // Find best card in user's wallet
+  let bestUserCard: CardData | null = null;
+  let maxUserRate = -1;
+
+  userCards.forEach((uc) => {
+    const dc = CARD_DATASET.find((c) => c.id === uc.id);
+    if (dc) {
+      const rate = dc.rewards.find((r) => r.category === category)?.rate ?? dc.baseRewardRate;
+      if (rate > maxUserRate) {
+        maxUserRate = rate;
+        bestUserCard = uc;
+      }
+    } else {
+      if (1 > maxUserRate) {
+        maxUserRate = 1;
+        bestUserCard = uc;
+      }
+    }
+  });
+
+  // Find absolute best card globally
+  const bestGlobalCard = getBestCardForCategory(category);
+  const maxGlobalRate = getCardRewardForCategory(bestGlobalCard, category);
+
+  const runners = CARD_DATASET
+    .filter((c) => c.id !== bestGlobalCard.id)
+    .sort((a, b) => getCardRewardForCategory(b, category) - getCardRewardForCategory(a, category))
+    .slice(0, 2);
+
+  const merchantStr = merchant || displayCategory;
+
+  let walletAdvice = "";
+  if (userCards.length === 0) {
+    walletAdvice = `💡 **Wallet Recommendation:** Add cards to your wallet to analyze which one is best for ${merchantStr}.`;
+  } else if (bestUserCard) {
+    const uc = bestUserCard as CardData;
+    const isOptimal = maxUserRate >= maxGlobalRate;
+    walletAdvice = `💳 **In Your Wallet:**
+You should pay with **${uc.label || uc.id}** which gives you **${maxUserRate}%** rewards.
+${isOptimal ? '🟢 *This is the absolute best reward rate available for this transaction!*' : `🟡 *Optimization opportunity:* You are earning ${maxUserRate}%, but you could earn **${maxGlobalRate}%** with **${bestGlobalCard.bank} ${bestGlobalCard.name}**.`}`;
+  }
+
+  return {
+    content: `🏆 **Spend Optimization for ${merchantStr} (${displayCategory} ${emoji})**
+
+${walletAdvice}
+
+🔥 **Top Cards in the Market for ${displayCategory}:**
+1. **${bestGlobalCard.bank} ${bestGlobalCard.name}** — **${maxGlobalRate}%** rewards
+${runners.map((c, i) => `${i + 2}. **${c.bank} ${c.name}** — **${getCardRewardForCategory(c, category)}%** rewards`).join('\n')}
+
+💡 *Swipe your optimal card to maximize statement cashback and reward multipliers!*`,
+    cards: [bestGlobalCard, ...runners],
+  };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  CARD UTILITIES
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Helper to look up best card globally for a category
 function getBestCardForCategory(category: SpendCategory): FinixCard {
   let best = CARD_DATASET[0];
   let bestRate = 0;
@@ -140,111 +366,11 @@ function getCardRewardForCategory(card: FinixCard, category: SpendCategory): num
   return catReward ? catReward.rate : card.baseRewardRate;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  RESPONSE GENERATION
-// ─────────────────────────────────────────────────────────────────────────────
-
-export interface TaqdeerMessage {
-  id: string;
-  role: 'user' | 'ai';
-  content: string;
-  timestamp: Date;
-  cards?: FinixCard[];
-}
-
-const TAQDEER_GREETINGS = [
-  'Hey! I\'m Taqdeer, your AI credit card advisor 🤖\n\nI can help you with:\n• Which card to use at any merchant\n• Your wallet health score\n• Card recommendations\n• Reward point calculations\n• CIBIL score tips\n\nWhat would you like to know?',
-  'Hello! I\'m Taqdeer, your personal Finix advisor 💳\n\nAsk me anything about your cards — which one to use, how to maximize rewards, or which new card to get!',
-];
-
-export function generateTaqdeerResponse(
-  query: string,
-  _userCards: { name: string; bank: string }[] = [],
-): { content: string; cards?: FinixCard[] } {
-  const intent = detectIntent(query);
-  const merchant = extractMerchant(query);
-  const lowerQuery = query.toLowerCase();
-
-  switch (intent) {
-    case 'greet':
-      return { content: TAQDEER_GREETINGS[Math.floor(Math.random() * TAQDEER_GREETINGS.length)] };
-
-    case 'best_card_for_merchant':
-    case 'dining':
-    case 'shopping':
-    case 'travel':
-    case 'fuel': {
-      const category = merchant
-        ? detectCategory(merchant)
-        : intent === 'dining' ? 'dining'
-        : intent === 'shopping' ? 'shopping'
-        : intent === 'travel' ? 'travel'
-        : intent === 'fuel' ? 'fuel'
-        : detectCategory(lowerQuery);
-
-      const bestCard = getBestCardForCategory(category);
-      const rate = getCardRewardForCategory(bestCard, category);
-      const displayCategory = category.charAt(0).toUpperCase() + category.slice(1);
-      const merchantStr = merchant || displayCategory;
-
-      const runners = CARD_DATASET
-        .filter((c) => c.id !== bestCard.id)
-        .sort((a, b) => getCardRewardForCategory(b, category) - getCardRewardForCategory(a, category))
-        .slice(0, 2);
-
-      return {
-        content: `🏆 **Best card for ${merchantStr}:**\n\n**${bestCard.bank} ${bestCard.name}** — ${rate}% rewards on ${displayCategory}\n\nOther good options:\n${runners.map((c) => `• ${c.bank} ${c.name}: ${getCardRewardForCategory(c, category)}%`).join('\n')}\n\n💡 *Always use the card with the highest reward rate for this category to maximize your points!*`,
-        cards: [bestCard, ...runners],
-      };
-    }
-
-    case 'reward_query': {
-      const categoryHint = ['dining', 'shopping', 'travel', 'fuel', 'groceries'].find((c) =>
-        lowerQuery.includes(c),
-      ) as SpendCategory | undefined;
-
-      if (categoryHint) {
-        const top3 = CARD_DATASET
-          .sort((a, b) => getCardRewardForCategory(b, categoryHint) - getCardRewardForCategory(a, categoryHint))
-          .slice(0, 3);
-
-        return {
-          content: `💰 **Best reward rates for ${categoryHint}:**\n\n${top3.map((c, i) => `${i + 1}. **${c.bank} ${c.name}**: ${getCardRewardForCategory(c, categoryHint)}% rewards`).join('\n')}\n\n💡 Tip: Higher base rewards mean more cashback/points on every rupee spent.`,
-          cards: top3,
-        };
-      }
-
-      return {
-        content: '💡 **Top reward cards overall:**\n\n1. **HDFC Diners Club Black** — 10% on dining & travel\n2. **Axis Magnus** — 35 EDGE Miles on travel\n3. **IDFC FIRST Classic** — 10% on dining & groceries\n\nTell me a specific category (dining, travel, fuel, etc.) and I\'ll find your best match!',
-        cards: CARD_DATASET.filter((c) =>
-          ['hdfc-diners-black', 'axis-magnus', 'idfc-first-classic'].includes(c.id),
-        ),
-      };
-    }
-
-    case 'wallet_health':
-      return {
-        content: '📊 **Your Wallet Health**\n\nBased on your transaction pattern:\n\n• 🟢 **Dining coverage**: Good — use your highest dining rewards card\n• 🟡 **Shopping coverage**: Medium — consider Amazon Pay ICICI for 5% back\n• 🔴 **Fuel coverage**: No dedicated fuel card — you\'re missing surcharge waivers!\n• 🟢 **Travel coverage**: Good — lounge access available\n\n**Wallet Score: 72/100**\n\n💡 *Add a no-annual-fee fuel card like SBI PRIME to improve your score!*',
-      };
-
-    case 'cibil_score':
-      return {
-        content: '📈 **CIBIL Score Tips**\n\nKey factors affecting your score:\n\n1. **Payment History (35%)** — Never miss a due date. Set auto-pay!\n2. **Credit Utilization (30%)** — Keep usage below 30% of your limit\n3. **Credit Mix (15%)** — A mix of credit card + loan is ideal\n4. **Credit Age (15%)** — Don\'t close old cards; they help your history\n5. **New Inquiries (5%)** — Don\'t apply for too many cards at once\n\n💡 *Target score: 750+ for premium card eligibility*',
-      };
-
-    case 'recommendation':
-      return {
-        content: '🎯 **Card Recommendation Engine**\n\nHead to the **Analyze** tab to get personalized card recommendations based on:\n• Your annual income\n• CIBIL score\n• Top spending categories\n• Annual fee preference\n\nI\'ll rank the best cards for your exact profile! 🚀',
-      };
-
-    case 'bill_payment':
-      return {
-        content: '💳 **Bill Payment Tips**\n\n• Always pay at least the minimum due to avoid late fees\n• Paying the full amount avoids 2-4% monthly interest\n• Set up auto-pay for at least the minimum\n• Pay before the due date — not just on it!\n\n💡 Your active card\'s payment details are visible in the dashboard. Use the "Pay Bill" button to record a payment.',
-      };
-
-    default:
-      return {
-        content: `I'm not sure I understood that completely 🤔\n\nYou can ask me things like:\n• "Which card should I use for Zomato?"\n• "What's the best card for travel?"\n• "How can I improve my CIBIL score?"\n• "Which card gives the most cashback on shopping?"\n\nWhat would you like to know?`,
-      };
+function extractMerchant(query: string): string | null {
+  const lower = query.toLowerCase();
+  for (const m of POPULAR_MERCHANTS) {
+    if (lower.includes(m.name.toLowerCase())) return m.name;
   }
+  return null;
 }
+

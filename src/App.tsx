@@ -33,6 +33,7 @@ import { LoginScreen } from './features/dashboard/components/LoginScreen';
 import { ProfileTab } from './features/dashboard/components/ProfileTab';
 import { CARD_DATASET } from './features/finix/data/cardDataset';
 import { BankLogo } from './features/cards/components/BankLogo';
+import { CardBenefitsSheet } from './features/cards/components/CardBenefitsSheet';
 
 
 
@@ -159,6 +160,9 @@ function HomeTab() {
   const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
   const [deleteCardLabel, setDeleteCardLabel] = useState<string>('');
 
+  // State for card benefits sheet
+  const [benefitsCardId, setBenefitsCardId] = useState<string | null>(null);
+
   // Form Inputs
   const [cardNumber, setCardNumber] = useState('');
   const [cardNameInput, setCardNameInput] = useState('');
@@ -249,6 +253,17 @@ function HomeTab() {
                       <span className="text-[10px] font-semibold text-brand-500 bg-brand-50 dark:bg-brand-500/10 px-2.5 py-1 rounded-full whitespace-nowrap">
                         {formatCents(cardWithLiveCredit.availableCredit)} avail.
                       </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setBenefitsCardId(card.id);
+                        }}
+                        className="text-ink-disabled hover:text-brand-500 p-1 rounded-full hover:bg-canvas-200 dark:hover:bg-white/[0.04] transition-colors flex items-center justify-center font-bold text-xs"
+                        title="Card Benefits Info"
+                        style={{ width: '22px', height: '22px' }}
+                      >
+                        ℹ️
+                      </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -709,6 +724,12 @@ function HomeTab() {
           </div>
         );})()}
       </AnimatePresence>
+
+      {/* Card Benefits Detail Sheet */}
+      <CardBenefitsSheet
+        cardId={benefitsCardId}
+        onClose={() => setBenefitsCardId(null)}
+      />
     </div>
   );
 }

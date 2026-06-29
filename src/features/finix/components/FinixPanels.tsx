@@ -238,9 +238,241 @@ const BILL_STATUS_LABELS: Record<BillStatus, string> = {
   safe: 'Upcoming', warning: 'Due Soon', urgent: 'Overdue',
 };
 
+import { useState, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import { X, Loader2, ShieldCheck, Check } from 'lucide-react';
+
+interface PayBillModalProps {
+  bill: Bill;
+  onClose: () => void;
+}
+
+function PayBillModal({ bill, onClose }: PayBillModalProps) {
+  const payBill = useDashboardStore((s) => s.payBill);
+  const userCards = useDashboardStore((s) => s.userCards);
+  const card = userCards.find((c) => c.id === bill.id);
+
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [payAmount, setPayAmount] = useState(String(bill.amount));
+  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'netbanking' | 'debit'>('upi');
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (step === 2) {
+      const timer = setTimeout(() => {
+        // Perform payBill store dispatch
+        const amtCents = Math.round(parseFloat(payAmount) * 100);
+        payBill({ cardId: bill.id, amount: amtCents });
+        setStep(3);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [step]);
+
+  const handlePaySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const amt = parseFloat(payAmount);
+    if (isNaN(amt) || amt <= 0) {
+      setError('Please enter a valid amount.');
+      return;
+    }
+    if (amt > bill.amount) {
+      setError(`Amount cannot exceed the total outstanding of ₹${bill.amount.toLocaleString('en-IN')}.`);
+      return;
+    }
+    setError(null);
+    setStep(2);
+  };
+
+  const pointsEarned = Math.floor(parseFloat(payAmount) * 0.1); // Mock 10% points back on bill payment value
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={step === 1 ? onClose : undefined}
+        className="absolute inset-0 bg-black/75 backdrop-blur-md"
+      />
+
+      {/* Modal Card */}
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0, y: 15 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0, y: 15 }}
+        className="relative w-full max-w-sm bg-canvas-50 dark:bg-[#1a1d21] rounded-[2rem] p-6 shadow-2xl border border-canvas-200/40 dark:border-white/[0.06] overflow-hidden flex flex-col text-left"
+        style={{
+          boxShadow: '0 10px 50px rgba(0,0,0,0.4)',
+        }}
+      >
+        {/* Header */}
+        {step === 1 && (
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-base font-display font-bold text-ink-primary">Pay Credit Card Bill</h3>
+              <p className="text-[11px] text-ink-tertiary">Safe & secure instant settlement</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-ink-tertiary hover:text-ink-secondary hover:bg-canvas-200 dark:hover:bg-white/[0.04]"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
+        {/* Step 1: Confirmation */}
+        {step === 1 && (
+          <form onSubmit={handlePaySubmit} className="flex flex-col gap-4">
+            {/* Visual card summary */}
+            {card && (
+              <div
+                className="h-24 rounded-2xl p-4 flex flex-col justify-between text-white relative overflow-hidden"
+                style={{ background: `linear-gradient(135deg, ${card.gradientFrom}, ${card.gradientTo})` }}
+              >
+                <div className="flex justify-between items-start">
+                  <p className="text-[10px] font-bold uppercase tracking-wider">{card.label || 'Credit Card'}</p>
+                  <p className="text-[9px] font-semibold opacity-80 uppercase">{card.network}</p>
+                </div>
+                <div className="flex justify-between items-end">
+                  <p className="font-mono text-xs tracking-widest">•••• •••• •••• {card.pan.slice(-4)}</p>
+                  <div className="text-right">
+                    <p className="text-[8px] text-white/60 uppercase">Due Date</p>
+                    <p className="text-[10px] font-bold">
+                      {new Date(bill.dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Editable Amount */}
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold text-ink-secondary uppercase tracking-wider">Payment Amount (INR)</label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-brand-500">₹</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={payAmount}
+                  onChange={(e) => { setPayAmount(e.target.value); setError(null); }}
+                  className="w-full input-premium pl-8 pr-4 py-2.5 font-display font-extrabold text-base text-ink-primary"
+                  autoFocus
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setPayAmount(String(bill.amount))}
+                className="text-[10px] text-brand-500 hover:text-brand-600 font-semibold self-end mt-0.5"
+              >
+                Pay Full Outstanding (₹{bill.amount.toLocaleString('en-IN')})
+              </button>
+            </div>
+
+            {/* Payment Method Selector */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-ink-secondary uppercase tracking-wider">Select Payment Method</label>
+              <div className="flex flex-col gap-1.5">
+                {[
+                  { id: 'upi', label: 'UPI / GooglePay / PhonePe', detail: 'Instant Settlement' },
+                  { id: 'netbanking', label: 'Net Banking', detail: 'Direct from bank account' },
+                  { id: 'debit', label: 'Debit Card', detail: 'Visa, Mastercard, RuPay' },
+                ].map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setPaymentMethod(m.id as any)}
+                    className={cn(
+                      'p-2.5 rounded-xl border text-left flex justify-between items-center transition-all',
+                      paymentMethod === m.id
+                        ? 'border-brand-500/40 bg-brand-50/20 dark:bg-brand-500/10'
+                        : 'border-canvas-200/60 dark:border-white/[0.03] hover:bg-canvas-100 dark:hover:bg-white/[0.01]'
+                    )}
+                  >
+                    <div>
+                      <p className="text-xs font-semibold text-ink-primary">{m.label}</p>
+                      <p className="text-[9px] text-ink-disabled">{m.detail}</p>
+                    </div>
+                    {paymentMethod === m.id && (
+                      <span className="w-4 h-4 rounded-full bg-brand-500 flex items-center justify-center text-white">
+                        <Check size={10} strokeWidth={3} />
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {error && <p className="text-xs text-loss font-semibold">{error}</p>}
+
+            <button
+              type="submit"
+              className="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm py-3 rounded-full flex items-center justify-center gap-2 shadow-ag-glow-primary transition-all active:scale-95 mt-2"
+            >
+              Pay Securely ₹{parseFloat(payAmount || '0').toLocaleString('en-IN')}
+            </button>
+          </form>
+        )}
+
+        {/* Step 2: Processing */}
+        {step === 2 && (
+          <div className="py-12 flex flex-col items-center justify-center text-center gap-4">
+            <Loader2 className="animate-spin text-brand-500" size={36} />
+            <div>
+              <p className="text-sm font-bold text-ink-primary">Verifying Payment</p>
+              <p className="text-xs text-ink-disabled mt-1 max-w-[200px] mx-auto">Connecting to bank servers via secure SSL channel...</p>
+            </div>
+            <div className="flex items-center gap-1 text-[10px] text-profit bg-profit/5 px-3 py-1 rounded-full border border-profit/15 mt-2">
+              <ShieldCheck size={12} /> SECURE 256-BIT ENCRYPTION
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Success */}
+        {step === 3 && (
+          <div className="py-6 flex flex-col items-center justify-center text-center gap-4">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1.1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 15 }}
+              className="w-14 h-14 rounded-full bg-profit flex items-center justify-center text-white shadow-lg"
+            >
+              <Check size={30} strokeWidth={3} />
+            </motion.div>
+            
+            <div>
+              <p className="text-lg font-display font-extrabold text-ink-primary">Payment Successful!</p>
+              <p className="text-xs text-ink-tertiary mt-1">₹{parseFloat(payAmount).toLocaleString('en-IN')} paid towards {bill.cardName}</p>
+            </div>
+
+            {/* Reward Points Box */}
+            <div className="w-full bg-brand-50/30 dark:bg-brand-500/[0.04] border border-brand-500/10 rounded-2xl p-4 flex flex-col items-center gap-1 mt-2">
+              <p className="text-[10px] font-bold text-brand-500 uppercase tracking-widest">renocred cashback rewards</p>
+              <p className="text-2xl font-display font-bold text-profit">+{pointsEarned.toLocaleString()}</p>
+              <p className="text-[10px] text-ink-disabled">Reward Points credited to your ledger</p>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="w-full mt-4 bg-ink-primary hover:bg-ink-secondary text-canvas-50 dark:text-canvas-200 font-semibold text-xs py-2.5 rounded-full transition-all active:scale-95"
+            >
+              Done & Close
+            </button>
+          </div>
+        )}
+      </motion.div>
+    </div>
+  );
+}
+
 export function BillTrackerPanel() {
   const creditAccounts = useDashboardStore((s) => s.creditAccounts);
   const userCards = useDashboardStore((s) => s.userCards);
+
+  // Modal State
+  const [payingBill, setPayingBill] = useState<Bill | null>(null);
 
   // Construct bills dynamically from active credit cards with outstanding balances
   const userBills: Bill[] = [];
@@ -334,13 +566,33 @@ export function BillTrackerPanel() {
                   Due {new Date(bill.dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} · {bill.cardName}
                 </p>
               </div>
-              <p className="flex-shrink-0 text-sm font-bold text-ink-primary">
-                ₹{bill.amount.toLocaleString('en-IN')}
-              </p>
+              
+              <div className="flex items-center gap-4">
+                <p className="text-sm font-bold text-ink-primary whitespace-nowrap">
+                  ₹{bill.amount.toLocaleString('en-IN')}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setPayingBill(bill)}
+                  className="text-xs font-bold text-white bg-brand-500 hover:bg-brand-600 px-3.5 py-1.5 rounded-xl shadow-sm transition-all active:scale-95"
+                >
+                  Pay Now
+                </button>
+              </div>
             </motion.div>
           );
         })}
       </div>
+
+      {/* Bill payment modal */}
+      <AnimatePresence>
+        {payingBill && (
+          <PayBillModal
+            bill={payingBill}
+            onClose={() => setPayingBill(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
