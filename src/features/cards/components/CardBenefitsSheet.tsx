@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Wallet, Award, Plane, Trophy, Sparkles, CreditCard } from 'lucide-react';
+import { X, Calendar, Wallet, Award, Plane, Trophy, Sparkles } from 'lucide-react';
 import { CARD_DATASET } from '../../finix/data/cardDataset';
 import { BankLogo } from './BankLogo';
 
@@ -166,7 +166,7 @@ export function CardBenefitsSheet({ cardId, onClose }: CardBenefitsSheetProps) {
                     </div>
                   ))}
                   <div className={`bg-canvas-100 dark:bg-white/[0.02] border border-canvas-200/40 dark:border-white/[0.03] rounded-2xl p-3 flex items-center gap-3 ${cardData.rewards.length % 2 === 0 ? 'col-span-2' : ''}`}>
-                    <CreditCard size={20} className="text-ink-secondary flex-shrink-0" />
+                    <span className="text-xl">💳</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-ink-primary truncate">Base Rate</p>
                       <p className="text-[10px] text-ink-tertiary">All other spends</p>
