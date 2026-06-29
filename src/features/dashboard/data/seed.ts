@@ -1,6 +1,22 @@
 import type { CreditAccount, RewardsAccount, Transaction } from '../types/dashboard.types';
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  NOTE ON DEMO DATA & SCALING:
+//  The amounts in this seed file are represented in paise (1 Rupee = 100 Paise)
+//  as is standard practice for handling currency values securely without floating
+//  point rounding issues.
+//  
+//  For demo and visual layout purposes, these mock transactions and credit limits
+//  are set to relatively high values (e.g. ₹10 Lakhs credit limits, ₹1.29 Lakhs
+//  Apple Store purchases). This allows showcasing features like the wallet health,
+//  utilization alerts, and reward accruals.
+//  
+//  ⚠️ IMPORTANT: If this dashboard is ever connected to live user databases/APIs, Ensure
+//  the scale of transaction amounts and credit limits aligns with actual customer metrics
+//  and local financial limits.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  SEED TRANSACTIONS
 //  Realistic sample data spanning 30 days for two cards.
 // ─────────────────────────────────────────────────────────────────────────────

@@ -89,22 +89,26 @@ function WalletOptimizerTab() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
-  // Form Inputs
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardNameInput, setCardNameInput] = useState('');
-  const [cardExpiryInput, setCardExpiryInput] = useState('');
-  const [cardCvvInput, setCardCvvInput] = useState('');
-  const [cardLimitInput, setCardLimitInput] = useState('');
+  // Form Inputs consolidated into a single form state object
+  const [form, setForm] = useState({
+    cardNumber: '',
+    cardName: '',
+    cardExpiry: '',
+    cardCvv: '', // CVV is collected in client-side state purely for rendering/previewing the card layout and is never saved or transmitted server-side.
+    cardLimit: '',
+  });
   const [formError, setFormError] = useState('');
 
   const handleCloseModal = () => {
     setShowAddModal(false);
     setSelectedTemplate(null);
-    setCardNumber('');
-    setCardNameInput('');
-    setCardExpiryInput('');
-    setCardCvvInput('');
-    setCardLimitInput('');
+    setForm({
+      cardNumber: '',
+      cardName: '',
+      cardExpiry: '',
+      cardCvv: '',
+      cardLimit: '',
+    });
     setFormError('');
     setSearchQuery('');
   };
@@ -226,8 +230,13 @@ function WalletOptimizerTab() {
                           key={c.id}
                           onClick={() => {
                             setSelectedTemplate(c);
-                            setCardNameInput(profile?.name || '');
-                            setCardLimitInput(c.minIncome ? String(Math.floor(c.minIncome * 0.5)) : '150000');
+                            setForm({
+                              cardNumber: '',
+                              cardName: profile?.name || '',
+                              cardExpiry: '',
+                              cardCvv: '',
+                              cardLimit: c.minIncome ? String(Math.floor(c.minIncome * 0.5)) : '150000',
+                            });
                           }}
                           className="w-full text-left p-3.5 rounded-2xl border border-canvas-200/40 dark:border-white/[0.03] hover:border-brand-500/20 bg-surface dark:bg-surface-muted/20 flex items-center gap-3 transition-all hover:scale-[1.01]"
                         >
@@ -273,11 +282,11 @@ function WalletOptimizerTab() {
                     </div>
                     <div>
                       <p className="font-mono text-xs tracking-widest">
-                        {cardNumber ? cardNumber.replace(/(\d{4})/g, '$1 ').trim() : '•••• •••• •••• ••••'}
+                        {form.cardNumber ? form.cardNumber.replace(/(\d{4})/g, '$1 ').trim() : '•••• •••• •••• ••••'}
                       </p>
                       <div className="flex justify-between items-end mt-1 text-[9px] opacity-75">
-                        <span className="uppercase truncate max-w-[180px]">{cardNameInput || 'CARDHOLDER NAME'}</span>
-                        <span>{cardExpiryInput || 'MM/YY'}</span>
+                        <span className="uppercase truncate max-w-[180px]">{form.cardName || 'CARDHOLDER NAME'}</span>
+                        <span>{form.cardExpiry || 'MM/YY'}</span>
                       </div>
                     </div>
                   </div>
@@ -290,8 +299,8 @@ function WalletOptimizerTab() {
                         type="text"
                         maxLength={16}
                         placeholder="4111 1111 1111 4242"
-                        value={cardNumber}
-                        onChange={(e) => setCardNumber(e.target.value.replace(/[^0-9]/g, '').slice(0, 16))}
+                        value={form.cardNumber}
+                        onChange={(e) => setForm(prev => ({ ...prev, cardNumber: e.target.value.replace(/[^0-9]/g, '').slice(0, 16) }))}
                         className="input-premium py-2 px-3 text-xs"
                       />
                     </div>
@@ -301,8 +310,8 @@ function WalletOptimizerTab() {
                       <input
                         type="text"
                         placeholder="e.g. Atharva Mishra"
-                        value={cardNameInput}
-                        onChange={(e) => setCardNameInput(e.target.value)}
+                        value={form.cardName}
+                        onChange={(e) => setForm(prev => ({ ...prev, cardName: e.target.value }))}
                         className="input-premium py-2 px-3 text-xs"
                       />
                     </div>
@@ -314,11 +323,11 @@ function WalletOptimizerTab() {
                           type="text"
                           maxLength={5}
                           placeholder="08/30"
-                          value={cardExpiryInput}
+                          value={form.cardExpiry}
                           onChange={(e) => {
                             let value = e.target.value;
-                            if (value.length < cardExpiryInput.length) {
-                              setCardExpiryInput(value);
+                            if (value.length < form.cardExpiry.length) {
+                              setForm(prev => ({ ...prev, cardExpiry: value }));
                               return;
                             }
                             let clean = value.replace(/[^0-9]/g, '');
@@ -337,7 +346,7 @@ function WalletOptimizerTab() {
                               }
                               clean = clean.slice(0, 2) + '/' + clean.slice(2, 4);
                             }
-                            setCardExpiryInput(clean.slice(0, 5));
+                            setForm(prev => ({ ...prev, cardExpiry: clean.slice(0, 5) }));
                           }}
                           className="input-premium py-2 px-3 text-xs"
                         />
@@ -349,8 +358,8 @@ function WalletOptimizerTab() {
                           type="password"
                           maxLength={3}
                           placeholder="•••"
-                          value={cardCvvInput}
-                          onChange={(e) => setCardCvvInput(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))}
+                          value={form.cardCvv}
+                          onChange={(e) => setForm(prev => ({ ...prev, cardCvv: e.target.value.replace(/[^0-9]/g, '').slice(0, 3) }))}
                           className="input-premium py-2 px-3 text-xs"
                         />
                       </div>
@@ -363,8 +372,8 @@ function WalletOptimizerTab() {
                         <input
                           type="number"
                           placeholder="e.g. 300000"
-                          value={cardLimitInput}
-                          onChange={(e) => setCardLimitInput(e.target.value)}
+                          value={form.cardLimit}
+                          onChange={(e) => setForm(prev => ({ ...prev, cardLimit: e.target.value }))}
                           className="w-full input-premium py-2 pl-7 pr-3 text-xs font-semibold"
                         />
                       </div>
@@ -375,29 +384,29 @@ function WalletOptimizerTab() {
 
                   <button
                     onClick={() => {
-                      if (cardNumber.length < 16) {
+                      if (form.cardNumber.length < 16) {
                         return setFormError('Card number must be exactly 16 digits.');
                       }
-                      if (!cardNameInput.trim()) {
+                      if (!form.cardName.trim()) {
                         return setFormError('Cardholder name is required.');
                       }
                       const expiryRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
-                      if (!expiryRegex.test(cardExpiryInput)) {
+                      if (!expiryRegex.test(form.cardExpiry)) {
                         return setFormError('Expiry must be a valid MM/YY format (months 01-12).');
                       }
-                      if (cardCvvInput.length < 3) {
+                      if (form.cardCvv.length < 3) {
                         return setFormError('CVV must be 3 digits.');
                       }
-                      const limitNum = parseFloat(cardLimitInput);
+                      const limitNum = parseFloat(form.cardLimit);
                       if (isNaN(limitNum) || limitNum <= 0) {
                         return setFormError('Please enter a valid credit limit.');
                       }
 
                       addUserCard({
                         id: selectedTemplate.id,
-                        pan: cardNumber,
-                        cardholderName: cardNameInput.trim(),
-                        expiry: cardExpiryInput,
+                        pan: form.cardNumber,
+                        cardholderName: form.cardName.trim(),
+                        expiry: form.cardExpiry,
                         network: selectedTemplate.network.toLowerCase() as any,
                         status: 'active',
                         availableCredit: limitNum * 100,
