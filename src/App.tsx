@@ -23,7 +23,7 @@ import type { TabId } from './components/layout/Sidebar';
 
 import { ActiveCard } from './features/cards/components/ActiveCard';
 import { TransactionFeed } from './features/dashboard/components/TransactionFeed';
-import { useDashboardStore } from './features/dashboard/store/dashboardStore';
+import { useDashboardStore, useHydration } from './features/dashboard/store/dashboardStore';
 import { cn, formatCents } from './lib/utils';
 
 // Finix features
@@ -919,13 +919,52 @@ function PerksTab() {
 //  APP
 // ─────────────────────────────────────────────────────────────────────────────
 
+function DashboardSkeleton() {
+  return (
+    <div className="flex flex-col gap-6 max-w-6xl mx-auto w-full animate-pulse">
+      {/* Header Skeleton */}
+      <div className="mb-4">
+        <div className="h-4 bg-canvas-200 dark:bg-canvas-300 rounded w-24 mb-2" />
+        <div className="h-10 bg-canvas-200 dark:bg-canvas-300 rounded-xl w-1/2 md:w-1/3" />
+      </div>
+      
+      {/* Cards Skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="h-[220px] bg-canvas-200 dark:bg-canvas-300 rounded-[2rem]" />
+        <div className="h-[220px] bg-canvas-200 dark:bg-canvas-300 rounded-[2rem] hidden md:block" />
+      </div>
+      
+      {/* Main Panels Skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-2">
+        <div className="lg:col-span-2 h-[500px] bg-canvas-200 dark:bg-canvas-300 rounded-[2rem]" />
+        <div className="h-[500px] bg-canvas-200 dark:bg-canvas-300 rounded-[2rem]" />
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const profile = useDashboardStore((s) => s.profile);
+  const isHydrated = useHydration();
+
   // Always force dark mode as per user request
   useEffect(() => {
     document.documentElement.classList.add('dark');
   }, []);
+
+  if (!isHydrated) {
+    return (
+      <DashboardLayout
+        activeTab={activeTab}
+        onTabChange={() => {}}
+        isDark={true}
+        onToggleTheme={() => {}}
+      >
+        <DashboardSkeleton />
+      </DashboardLayout>
+    );
+  }
 
   if (!profile) {
     return <LoginScreen />;

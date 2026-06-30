@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Target, ShieldCheck, HeartPulse } from 'lucide-react';
+import { Target, ShieldCheck, HeartPulse, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import { useDashboardStore } from '../../dashboard/store/dashboardStore';
 import { cn, formatCents } from '../../../lib/utils';
 import type { TransactionCategory } from '../../dashboard/types/dashboard.types';
@@ -10,11 +10,17 @@ export function BudgetingPanel() {
   const creditAccounts = useDashboardStore((s) => s.creditAccounts) || [];
   const transactions = useDashboardStore((s) => s.transactions) || [];
   const addBudget = useDashboardStore((s) => s.addBudget);
+  const deleteBudget = useDashboardStore((s) => s.deleteBudget);
+  const updateBudgetLimit = useDashboardStore((s) => s.updateBudgetLimit);
 
   const [showAddBudget, setShowAddBudget] = useState(false);
   const [isCustomBudget, setIsCustomBudget] = useState(false);
   const [customCategory, setCustomCategory] = useState<TransactionCategory>('other');
   const [customAmountStr, setCustomAmountStr] = useState('');
+  
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [editingBudgetId, setEditingBudgetId] = useState<string | null>(null);
+  const [editAmountStr, setEditAmountStr] = useState('');
 
   const PRESET_BUDGETS: { category: TransactionCategory; label: string; defaultLimit: number }[] = [
     { category: 'groceries', label: 'Groceries', defaultLimit: 2000000 }, // ₹20k
@@ -155,9 +161,82 @@ export function BudgetingPanel() {
                     </div>
                   </div>
                   
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-ink-primary">{formatCents(dynamicSpend)}</p>
-                    <p className="text-[10px] text-ink-tertiary font-medium">of {formatCents(budget.limitAmount)}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-ink-primary">{formatCents(dynamicSpend)}</p>
+                      {editingBudgetId === budget.id ? (
+                        <input
+                          type="number"
+                          value={editAmountStr}
+                          onChange={(e) => setEditAmountStr(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const amt = parseFloat(editAmountStr);
+                              if (!isNaN(amt) && amt > 0) {
+                                updateBudgetLimit(budget.id, Math.floor(amt * 100));
+                              }
+                              setEditingBudgetId(null);
+                            } else if (e.key === 'Escape') {
+                              setEditingBudgetId(null);
+                            }
+                          }}
+                          onBlur={() => {
+                            const amt = parseFloat(editAmountStr);
+                            if (!isNaN(amt) && amt > 0) {
+                              updateBudgetLimit(budget.id, Math.floor(amt * 100));
+                            }
+                            setEditingBudgetId(null);
+                          }}
+                          autoFocus
+                          className="w-20 text-[10px] py-0.5 px-1 mt-0.5 bg-canvas-200 dark:bg-canvas-300 rounded outline-none border border-brand-500/50 text-ink-primary text-right"
+                        />
+                      ) : (
+                        <p className="text-[10px] text-ink-tertiary font-medium">of {formatCents(budget.limitAmount)}</p>
+                      )}
+                    </div>
+                    
+                    <div className="relative">
+                      <button
+                        onClick={() => setActiveMenuId(activeMenuId === budget.id ? null : budget.id)}
+                        className="p-1.5 rounded-full text-ink-tertiary hover:bg-canvas-200 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <MoreVertical size={14} />
+                      </button>
+                      
+                      {activeMenuId === budget.id && (
+                        <>
+                          <div 
+                            className="fixed inset-0 z-40"
+                            onClick={() => setActiveMenuId(null)}
+                          />
+                          <motion.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="absolute right-0 top-full mt-1 w-32 bg-canvas-50 dark:bg-canvas-300 rounded-xl shadow-ag-modal border border-canvas-200/50 dark:border-white/10 z-50 overflow-hidden flex flex-col"
+                          >
+                            <button
+                              onClick={() => {
+                                setEditAmountStr(String(budget.limitAmount / 100));
+                                setEditingBudgetId(budget.id);
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full text-left px-3 py-2.5 text-xs font-semibold text-ink-primary hover:bg-canvas-100 dark:hover:bg-white/5 flex items-center gap-2 transition-colors"
+                            >
+                              <Edit2 size={13} /> Edit Limit
+                            </button>
+                            <button
+                              onClick={() => {
+                                deleteBudget(budget.id);
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full text-left px-3 py-2.5 text-xs font-semibold text-loss hover:bg-red-500/10 flex items-center gap-2 transition-colors"
+                            >
+                              <Trash2 size={13} /> Delete
+                            </button>
+                          </motion.div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
 

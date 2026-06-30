@@ -418,10 +418,27 @@ export function TransactionFeed({ limit = 12, className }: TransactionFeedProps)
   const activeCardId = useDashboardStore((s) => s.activeCardId);
   const [showForm, setShowForm] = useState(false);
 
-  // Filter to the active card, then cap at limit
-  const transactions = allTransactions
-    .filter((t) => !t.cardId || t.cardId === activeCardId)
-    .slice(0, limit);
+  const [timeFilter, setTimeFilter] = useState<'all' | 'week' | 'month' | 'custom'>('all');
+
+  // Filter to the active card, then by time, then cap at limit
+  const activeCardTransactions = allTransactions.filter((t) => !t.cardId || t.cardId === activeCardId);
+  
+  const now = new Date();
+  const filteredTransactions = activeCardTransactions.filter(t => {
+    if (timeFilter === 'all') return true;
+    const txDate = new Date(t.date);
+    if (timeFilter === 'week') {
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      return txDate >= weekAgo;
+    }
+    if (timeFilter === 'month') {
+      const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      return txDate >= monthAgo;
+    }
+    return true;
+  });
+
+  const transactions = filteredTransactions.slice(0, limit);
 
   // Track which IDs were present on previous render so we can mark new ones
   const prevIdsRef = useRef<Set<string>>(new Set(transactions.map((t) => t.id)));
@@ -488,6 +505,17 @@ export function TransactionFeed({ limit = 12, className }: TransactionFeedProps)
         </div>
 
         <div className="flex items-center gap-2">
+          <select
+            value={timeFilter}
+            onChange={(e) => setTimeFilter(e.target.value as any)}
+            className="h-8 px-2 rounded-full text-xs font-semibold bg-white dark:bg-canvas-200/50 border border-zinc-200/20 dark:border-white/10 text-ink-secondary focus:outline-none cursor-pointer hover:bg-zinc-50 dark:hover:bg-canvas-300 transition-colors"
+          >
+            <option value="all">All Time</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="custom">Custom</option>
+          </select>
+
           <motion.button
             whileTap={{ scale: 0.95 }}
             type="button"

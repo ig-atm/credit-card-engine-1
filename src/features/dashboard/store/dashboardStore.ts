@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, devtools, createJSONStorage } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
+import { useState, useEffect } from 'react';
 
 import type {
   Transaction,
@@ -112,6 +113,12 @@ interface DashboardActions {
 
   /** Add a new category budget */
   addBudget: (budget: CategoryBudget) => void;
+
+  /** Remove a category budget */
+  deleteBudget: (budgetId: string) => void;
+
+  /** Update a category budget limit */
+  updateBudgetLimit: (budgetId: string, limitAmount: number) => void;
 
   /** Add a new subscription (renewal) */
   addSubscription: (subscription: Subscription) => void;
@@ -510,6 +517,23 @@ export const useDashboardStore = create<DashboardState & DashboardActions>()(
           });
         },
 
+        // ── deleteBudget ─────────────────────────────────────────────────────
+        deleteBudget(budgetId) {
+          set((state) => {
+            state.budgets = state.budgets.filter((b) => b.id !== budgetId);
+          });
+        },
+
+        // ── updateBudgetLimit ────────────────────────────────────────────────
+        updateBudgetLimit(budgetId, limitAmount) {
+          set((state) => {
+            const budget = state.budgets.find(b => b.id === budgetId);
+            if (budget) {
+              budget.limitAmount = limitAmount;
+            }
+          });
+        },
+
         // ── addSubscription ──────────────────────────────────────────────────
         addSubscription(subscription) {
           set((state) => {
@@ -575,3 +599,15 @@ export const useDashboardStore = create<DashboardState & DashboardActions>()(
     },
   ),
 );
+
+export const useHydration = () => {
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    const unsubFinishHydration = useDashboardStore.persist.onFinishHydration(() => setHydrated(true));
+    setHydrated(useDashboardStore.persist.hasHydrated());
+    return () => {
+      unsubFinishHydration();
+    };
+  }, []);
+  return hydrated;
+};
