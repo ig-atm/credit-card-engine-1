@@ -923,21 +923,10 @@ function PerksTab() {
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const profile = useDashboardStore((s) => s.profile);
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark') || 
-             window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-    return false;
-  });
-
+  // Always force dark mode as per user request
   useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDark]);
+    document.documentElement.classList.add('dark');
+  }, []);
 
   if (!profile) {
     return <LoginScreen />;
@@ -947,8 +936,8 @@ export default function App() {
     <DashboardLayout
       activeTab={activeTab}
       onTabChange={setActiveTab}
-      isDark={isDark}
-      onToggleTheme={() => setIsDark(!isDark)}
+      isDark={true}
+      onToggleTheme={() => {}}
     >
       {activeTab === 'home'     && <HomeTab />}
       {activeTab === 'analyze'  && <AnalyzeTab />}
