@@ -1,6 +1,6 @@
 import { useState, useRef, useId } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ChevronRight, Minus } from 'lucide-react';
+import { Plus, ChevronRight, Minus, Download } from 'lucide-react';
 
 import { cn } from '../../../lib/utils';
 import { useShallow } from 'zustand/shallow';
@@ -446,6 +446,30 @@ export function TransactionFeed({ limit = 12, className }: TransactionFeedProps)
   }
   prevIdsRef.current = currentIds;
 
+  const exportTransactionsCSV = () => {
+    if (allTransactions.length === 0) return;
+    const headers = ['ID', 'Date', 'Merchant', 'Amount', 'Category', 'Type', 'CardID', 'Pending'];
+    const rows = allTransactions.map(t => [
+      t.id,
+      t.date,
+      `"${t.merchant.replace(/"/g, '""')}"`,
+      (t.amount / 100).toFixed(2),
+      t.category,
+      t.type,
+      t.cardId || '',
+      t.pending ? 'true' : 'false'
+    ]);
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `renocred_transactions_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <section
       className={cn('flex flex-col gap-0', className)}
@@ -463,7 +487,19 @@ export function TransactionFeed({ limit = 12, className }: TransactionFeedProps)
           </p>
         </div>
 
-        <button
+        <div className="flex items-center gap-2">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            type="button"
+            onClick={exportTransactionsCSV}
+            aria-label="Download transactions as CSV"
+            className="h-8 px-3 rounded-full flex items-center justify-center gap-1.5 bg-white dark:bg-canvas-200/50 border border-zinc-200/20 dark:border-white/10 shadow-ag-base text-ink-secondary hover:text-ink-primary hover:bg-zinc-50 dark:hover:bg-canvas-300 transition-all duration-200 text-xs font-semibold"
+          >
+            <Download size={14} />
+            Export
+          </motion.button>
+          
+          <button
           id="add-transaction-btn"
           type="button"
           onClick={() => setShowForm((v) => !v)}
@@ -477,6 +513,7 @@ export function TransactionFeed({ limit = 12, className }: TransactionFeedProps)
             <Plus size={14} strokeWidth={3} />
           )}
         </button>
+        </div>
       </div>
 
       {/* ── Quick-add form (animated) ───────────────────────────────── */}

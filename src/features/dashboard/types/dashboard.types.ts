@@ -111,3 +111,53 @@ export interface AppProfile {
   creditScore: number;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  SUBSCRIPTION & MILESTONE TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface Subscription {
+  id: string;
+  name: string;
+  amount: number;
+  billingCycle: 'monthly' | 'yearly';
+  nextBillingDate: string;
+  status: 'active' | 'cancelled' | 'paused';
+  cardId: string;
+  category: string;
+  hasPriceHike: boolean;
+  previousAmount?: number;
+  isFreeTrial: boolean;
+  logo?: string;
+}
+
+export interface Milestone {
+  id: string;
+  title: string;
+  description: string;
+  targetAmount: number;
+  currentAmount: number;
+  rewardType: 'points' | 'fee_waiver' | 'cashback';
+  rewardValue: string;
+  dueDate: string;
+  cardId: string;
+}
+
+export interface MerchantOffer {
+  id: string;
+  merchantName: string;
+  description: string;
+  discountPercentage: number;
+  maxDiscountAmount: number;
+  category: string;
+  validUntil: string;
+  eligibleCardIds: string[];
+}
+
+export interface CategoryBudget {
+  id: string;
+  category: TransactionCategory;
+  limitAmount: number;
+  currentSpend: number;
+  period: 'monthly' | 'weekly';
+}
+

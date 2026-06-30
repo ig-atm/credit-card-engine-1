@@ -598,12 +598,120 @@ export function BillTrackerPanel() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  SPEND TREND CHART
+// ─────────────────────────────────────────────────────────────────────────────
+
+function SpendTrendChart({ debits }: { debits: any[] }) {
+  // Compute real data for the last 7 days
+  const data = Array(7).fill(0);
+  const now = new Date();
+  // Strip time for accurate day difference
+  now.setHours(0, 0, 0, 0);
+  
+  debits.forEach(t => {
+    const d = new Date(t.date);
+    d.setHours(0, 0, 0, 0);
+    const diffTime = now.getTime() - d.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    // if within last 7 days (0 to 6)
+    if (diffDays >= 0 && diffDays < 7) {
+      // index 6 is today, index 0 is 7 days ago
+      const index = 6 - diffDays;
+      data[index] += t.amount / 100;
+    }
+  });
+  
+  // If max is 0, give it a tiny value so chart still renders a flat line
+  const max = Math.max(...data, 100);
+  const min = 0;
+  
+  const width = 300;
+  const height = 100;
+  
+  const points = data.map((val, i) => {
+    const x = (i / (data.length - 1)) * width;
+    const y = height - ((val - min) / (max - min)) * (height - 20) - 10;
+    return `${x},${y}`;
+  });
+  
+  const pathData = `M 0,${height} ` + points.map((p, i) => {
+    if (i === 0) return `L ${p}`;
+    const prev = points[i - 1].split(',');
+    const curr = p.split(',');
+    const cp1x = parseFloat(prev[0]) + (parseFloat(curr[0]) - parseFloat(prev[0])) / 2;
+    return `C ${cp1x},${prev[1]} ${cp1x},${curr[1]} ${curr[0]},${curr[1]}`;
+  }).join(' ');
+
+  return (
+    <div className="panel-glass rounded-2xl shadow-ag-base p-5">
+      <div className="flex justify-between items-end mb-4">
+        <div>
+          <p className="text-xs font-semibold tracking-widest uppercase text-ink-tertiary mb-1">Spend Trend</p>
+          <p className="text-lg font-bold text-ink-primary">Last 7 Days</p>
+        </div>
+      </div>
+      <div className="relative w-full h-[100px]">
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
+          <defs>
+            <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="rgb(var(--brand-500))" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="rgb(var(--brand-500))" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          
+          <motion.path
+            d={`${pathData} L ${width},${height} Z`}
+            fill="url(#trendGradient)"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.2 }}
+          />
+          
+          <motion.path
+            d={pathData.replace(`M 0,${height} L`, 'M')}
+            fill="none"
+            stroke="currentColor"
+            className="text-brand-500"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1.5, ease: 'easeOut' }}
+          />
+          
+          {data.map((val, i) => {
+            const x = (i / (data.length - 1)) * width;
+            const y = height - ((val - min) / (max - min)) * (height - 20) - 10;
+            return (
+              <motion.circle
+                key={i}
+                cx={x}
+                cy={y}
+                r="4"
+                className="fill-white dark:fill-canvas-50 stroke-brand-500 cursor-pointer"
+                strokeWidth="2"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 1 + i * 0.1 }}
+                whileHover={{ scale: 1.8 }}
+              />
+            );
+          })}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  INSIGHTS PANEL
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function InsightsPanel() {
-  const transactions = useDashboardStore((s) => s.transactions);
-  const rewards = useDashboardStore((s) => s.rewards);
+  const transactions = useDashboardStore((s) => s.transactions) || [];
+  const rewards = useDashboardStore((s) => s.rewards) || { cycleEarnings: 0 };
 
   const debits = transactions.filter((t) => t.type === 'debit');
   const totalSpend = debits.reduce((acc, t) => acc + t.amount, 0);
@@ -740,6 +848,10 @@ export function InsightsPanel() {
           </div>
         </div>
       </div>
+
+      <SpendTrendChart debits={debits} />
+
+
 
       {/* Smart nudges */}
       <div>

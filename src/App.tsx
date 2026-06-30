@@ -15,6 +15,8 @@ import {
   Search,
   Trash2,
   Info,
+  Target,
+  Tag,
 } from 'lucide-react';
 
 import { DashboardLayout } from './components/layout/DashboardLayout';
@@ -35,6 +37,8 @@ import { ProfileTab } from './features/dashboard/components/ProfileTab';
 import { CARD_DATASET } from './features/finix/data/cardDataset';
 import { BankLogo } from './features/cards/components/BankLogo';
 import { CardBenefitsSheet } from './features/cards/components/CardBenefitsSheet';
+import { PerksDashboard } from './features/finix/components/PerksDashboard';
+import { BudgetingPanel } from './features/finix/components/BudgetingPanel';
 
 
 
@@ -55,7 +59,7 @@ function getGreeting(): string {
 // ─────────────────────────────────────────────────────────────────────────────
 
 type WalletTabId = 'optimizer' | 'upi' | 'bills';
-type InsightsTabId = 'insights' | 'cibil';
+type InsightsTabId = 'insights' | 'cibil' | 'budget';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  PAGE CONTAINER — reusable wrapper for sub-pages
@@ -829,6 +833,7 @@ function WalletTab() {
 
 const INSIGHTS_TABS: { id: InsightsTabId; label: string; icon: typeof BarChart3 }[] = [
   { id: 'insights', label: 'Insights', icon: BarChart3   },
+  { id: 'budget',   label: 'Budget',   icon: Target      },
   { id: 'cibil',    label: 'CIBIL',    icon: ShieldCheck },
 ];
 
@@ -837,8 +842,8 @@ function InsightsTab() {
 
   return (
     <PageContainer
-      title={activeTab === 'insights' ? 'Spend Insights' : 'CIBIL Score'}
-      subtitle={activeTab === 'insights' ? 'Smart analysis of your spending patterns' : 'Your credit health report'}
+      title={activeTab === 'insights' ? 'Spend Insights' : activeTab === 'budget' ? 'Category Budgets' : 'CIBIL Score'}
+      subtitle={activeTab === 'insights' ? 'Smart analysis of your spending patterns' : activeTab === 'budget' ? 'Track your credit health and budgets' : 'Your credit health report'}
     >
       {/* Sub-tabs */}
       <div className="flex gap-1 bg-canvas-200/60 dark:bg-canvas-300/30 rounded-2xl p-1 backdrop-blur-sm">
@@ -878,10 +883,34 @@ function InsightsTab() {
             transition={{ duration: 0.2 }}
           >
             {activeTab === 'insights' && <InsightsPanel />}
+            {activeTab === 'budget'   && <BudgetingPanel />}
             {activeTab === 'cibil'    && <CibilPanel />}
           </motion.div>
         </AnimatePresence>
       </div>
+    </PageContainer>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PERKS TAB
+// ─────────────────────────────────────────────────────────────────────────────
+
+type PerksTabId = 'rewards' | 'subscriptions' | 'offers';
+
+const PERKS_TABS: { id: PerksTabId; label: string; icon: typeof Gift }[] = [
+  { id: 'rewards',       label: 'Rewards & Milestones', icon: Gift },
+  { id: 'subscriptions', label: 'Subscriptions',        icon: CreditCard },
+  { id: 'offers',        label: 'Card Offers',          icon: Tag },
+];
+
+function PerksTab() {
+  return (
+    <PageContainer
+      title="Perks & Rewards"
+      subtitle="Milestone tracking & card benefits"
+    >
+      <PerksDashboard />
     </PageContainer>
   );
 }
@@ -923,6 +952,7 @@ export default function App() {
       {activeTab === 'home'     && <HomeTab />}
       {activeTab === 'analyze'  && <AnalyzeTab />}
       {activeTab === 'wallet'   && <WalletTab />}
+      {activeTab === 'perks'    && <PerksTab />}
       {activeTab === 'insights' && <InsightsTab />}
       {activeTab === 'profile'  && <ProfileTab />}
 

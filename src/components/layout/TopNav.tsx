@@ -13,6 +13,7 @@ const TAB_TITLES: Record<TabId, { title: string; subtitle: string }> = {
   analyze:  { title: 'Card Analyzer',  subtitle: 'Personalized credit card recommendations' },
   wallet:   { title: 'Wallet',         subtitle: 'Optimize payments & track bills'           },
   insights: { title: 'Insights',       subtitle: 'Spend analysis & credit health'            },
+  perks:    { title: 'Perks & Rewards',subtitle: 'Milestone tracking & card benefits'        },
   profile:  { title: 'Profile Settings', subtitle: 'Manage your credit profile and preferences' },
 };
 

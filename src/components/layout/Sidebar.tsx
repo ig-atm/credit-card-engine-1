@@ -9,6 +9,7 @@ import {
   Layers,
   LogOut,
   User,
+  Gift,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useDashboardStore } from '../../features/dashboard/store/dashboardStore';
@@ -17,7 +18,7 @@ import { useDashboardStore } from '../../features/dashboard/store/dashboardStore
 //  SIDEBAR — Premium fixed navigation
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type TabId = 'home' | 'analyze' | 'wallet' | 'insights' | 'profile';
+export type TabId = 'home' | 'analyze' | 'wallet' | 'perks' | 'insights' | 'profile';
 
 interface NavItem {
   id: TabId;
@@ -30,6 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'home',     label: 'Dashboard', Icon: LayoutDashboard, description: 'Overview & cards'      },
   { id: 'analyze',  label: 'Analyzer',  Icon: Search,          description: 'Card recommendations'  },
   { id: 'wallet',   label: 'Wallet',    Icon: Wallet,          description: 'Optimizer & payments'   },
+  { id: 'perks',    label: 'Perks',     Icon: Gift,            description: 'Rewards & subscriptions'},
   { id: 'insights', label: 'Insights',  Icon: BarChart3,       description: 'Spend analysis & CIBIL' },
   { id: 'profile',  label: 'Profile',   Icon: User,            description: 'Settings & details'     },
 ];
