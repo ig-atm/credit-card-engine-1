@@ -573,8 +573,8 @@ function HomeTab() {
 
                   <button
                     onClick={() => {
-                      if (cardNumber.length < 16) {
-                        return setFormError('Card number must be exactly 16 digits.');
+                      if (cardNumber.length < 4) {
+                        return setFormError('Card number must be exactly 4 digits.');
                       }
                       if (!cardNameInput.trim()) {
                         return setFormError('Cardholder name is required.');

@@ -327,7 +327,7 @@ export function LoginScreen() {
                     type="range"
                     min={300}
                     max={900}
-                    step={5}
+                    step={1}
                     value={creditScore}
                     onChange={(e) => handleScoreSliderChange(Number(e.target.value))}
                     className="w-full accent-brand-500 bg-canvas-300 h-1.5 rounded-lg appearance-none cursor-pointer"

@@ -255,7 +255,7 @@ export function ProfileTab() {
             type="range"
             min={300}
             max={900}
-            step={5}
+            step={1}
             value={creditScore}
             onChange={handleCreditSliderChange}
             className="w-full accent-brand-500 cursor-pointer h-1.5 bg-canvas-200 rounded-lg appearance-none mt-1"

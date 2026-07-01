@@ -384,8 +384,8 @@ function WalletOptimizerTab() {
 
                   <button
                     onClick={() => {
-                      if (form.cardNumber.length < 16) {
-                        return setFormError('Card number must be exactly 16 digits.');
+                      if (form.cardNumber.length < 4) {
+                        return setFormError('Card number must be exactly 4 digits.');
                       }
                       if (!form.cardName.trim()) {
                         return setFormError('Cardholder name is required.');
