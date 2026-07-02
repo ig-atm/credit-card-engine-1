@@ -128,9 +128,9 @@ export function ActiveCard({ card, revealed = false, className }: ActiveCardProp
       : `linear-gradient(135deg, ${card.gradientFrom} 0%, ${card.gradientTo} 100%)`,
   };
 
-  const creditUsedPct = Math.round(
-    ((card.creditLimit - card.availableCredit) / card.creditLimit) * 100,
-  );
+  const availablePct = card.creditLimit > 0
+    ? (card.availableCredit / card.creditLimit) * 100
+    : 0;
 
   // ─── JSX ──────────────────────────────────────────────────────────────────
 
@@ -328,15 +328,15 @@ export function ActiveCard({ card, revealed = false, className }: ActiveCardProp
 
         </div>{/* /card content */}
 
-        {/* ── Credit utilization bar (bottom edge) ──────────────────────── */}
+        {/* ── Available limit bar (bottom edge) ──────────────────────── */}
         <div
-          aria-label={`Credit used: ${creditUsedPct}%`}
-          className="absolute bottom-0 left-0 right-0 h-1 bg-white/10"
+          aria-label={`Available credit: ${availablePct.toFixed(2)}%`}
+          className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 hidden sm:block"
         >
           <motion.div
             className="h-full bg-white/50 rounded-full"
             initial={{ width: 0 }}
-            animate={{ width: `${creditUsedPct}%` }}
+            animate={{ width: `${availablePct}%` }}
             transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.3 }}
           />
         </div>

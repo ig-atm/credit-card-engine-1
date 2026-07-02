@@ -163,11 +163,7 @@ function WalletOptimizerTab() {
                 <p className="text-sm font-semibold text-ink-primary">{CATEGORY_LABELS[cat]}</p>
                 <p className="text-xs text-ink-tertiary truncate">{card.label || 'Credit Card'}</p>
               </div>
-              {/* Card chip */}
-              <div
-                className="flex-shrink-0 h-8 w-12 rounded-lg shadow-sm"
-                style={{ background: `linear-gradient(135deg, ${card.gradientFrom}, ${card.gradientTo})` }}
-              />
+
               <div className="flex-shrink-0 text-right">
                 <p className="text-sm font-bold text-profit">{rate}%</p>
                 <p className="text-[10px] text-ink-disabled">rewards</p>
