@@ -122,19 +122,23 @@ export function DashboardLayout({
             >
               renocred
             </motion.p>
-            <div className="w-9 h-9 rounded-full bg-canvas-200 dark:bg-canvas-300 overflow-hidden">
+            <button 
+              onClick={() => onTabChange('profile')}
+              className="w-9 h-9 rounded-full bg-canvas-200 dark:bg-canvas-300 overflow-hidden ring-1 ring-canvas-300 dark:ring-white/[0.06] hover:ring-brand-500/50 transition-all cursor-pointer"
+            >
               <img
                 src={profile?.avatar || "https://api.dicebear.com/7.x/notionists/svg?seed=Atharva&backgroundColor=f8f9fa"}
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
-            </div>
+            </button>
           </header>
         ) : (
           <TopNav
             activeTab={activeTab}
             isDark={isDark}
             onToggleTheme={onToggleTheme}
+            onTabChange={onTabChange}
           />
         )}
 
