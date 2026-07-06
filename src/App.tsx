@@ -35,6 +35,7 @@ import { CibilPanel, BillTrackerPanel, InsightsPanel } from './features/finix/co
 import { LoginScreen } from './features/dashboard/components/LoginScreen';
 import { ProfileTab } from './features/dashboard/components/ProfileTab';
 import { CARD_DATASET } from './features/finix/data/cardDataset';
+import { SpendingAnalytics } from './features/dashboard/components/SpendingAnalytics';
 import { BankLogo } from './features/cards/components/BankLogo';
 import { CardBenefitsSheet } from './features/cards/components/CardBenefitsSheet';
 import { PerksDashboard } from './features/finix/components/PerksDashboard';
@@ -362,8 +363,9 @@ function HomeTab() {
           </div>
         </div>
 
-        {/* Right column: transaction feed */}
-        <aside className="xl:sticky xl:top-24">
+        {/* Right column: analytics and transaction feed */}
+        <aside className="xl:sticky xl:top-24 flex flex-col">
+          <SpendingAnalytics />
           <div className="panel-glass rounded-3xl p-5">
             <TransactionFeed limit={12} />
           </div>
