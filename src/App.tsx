@@ -218,8 +218,8 @@ function HomeTab() {
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-8 items-start">
         {/* Left column: cards + stat panels + wallet optimizer */}
         <div className="flex flex-col gap-8">
-          {/* Cards grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {/* Cards View: Carousel on Mobile, Grid on Desktop */}
+          <div className="flex sm:grid sm:grid-cols-2 overflow-x-auto sm:overflow-visible gap-6 pb-8 sm:pb-0 snap-x snap-mandatory sm:snap-none hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
             {userCards.map((card) => {
               const account = creditAccounts.find((a) => a.cardId === card.id);
               const cardWithLiveCredit = {
@@ -237,10 +237,10 @@ function HomeTab() {
                   onClick={() => setActiveCard(card.id)}
                   whileTap={{ scale: 0.98 }}
                   className={cn(
-                    'flex flex-col gap-3 cursor-pointer transition-all duration-300 rounded-3xl p-3',
+                    'snap-center shrink-0 w-[85vw] sm:w-auto flex flex-col gap-3 cursor-pointer transition-all duration-300 rounded-3xl p-3',
                     isActive
                       ? 'opacity-100 ring-2 ring-brand-500/50 ring-offset-2 ring-offset-canvas-100 dark:ring-offset-canvas-50 bg-surface/30'
-                      : 'opacity-60 hover:opacity-85',
+                      : 'opacity-60 hover:opacity-100 hover:-translate-y-1',
                   )}
                 >
                   <div className="flex items-center justify-between px-1">
@@ -285,24 +285,18 @@ function HomeTab() {
                 </motion.div>
               );
             })}
+          </div>
 
-            {/* Visual dashed Card Placeholder for adding cards */}
-            <motion.div
-              whileHover={{ scale: 1.01 }}
+          {/* Add Card Button */}
+          <div className="flex justify-center mb-4">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowAddModal(true)}
-              className={cn(
-                'flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-300 rounded-[2rem] p-6 h-56 border-2 border-dashed border-canvas-300 dark:border-white/[0.06] bg-canvas-50/20 dark:bg-white/[0.01] hover:border-brand-500/50 hover:bg-brand-500/[0.02]',
-              )}
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl border-2 border-dashed border-canvas-300 dark:border-white/[0.08] text-sm font-bold text-ink-secondary hover:text-brand-500 hover:border-brand-500/50 hover:bg-brand-500/[0.02] transition-all"
             >
-              <div className="w-12 h-12 rounded-2xl bg-canvas-200 dark:bg-canvas-300/40 flex items-center justify-center text-ink-secondary">
-                <Plus size={20} />
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-bold text-ink-primary">Add Credit Card</p>
-                <p className="text-xs text-ink-tertiary mt-0.5">Link a card to optimize spends</p>
-              </div>
-            </motion.div>
+              <Plus size={16} /> Add Another Card
+            </motion.button>
           </div>
 
           {/* ── Stat panels ──────────────────────────────────────────── */}
