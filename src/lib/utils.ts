@@ -20,12 +20,19 @@ export function cn(...inputs: ClassValue[]): string {
  *   → '4111  ••••  ••••  1111'
  */
 export function formatCardNumber(raw: string, masked = true): string {
-  const clean = raw.replace(/\D/g, '').slice(0, 16).padEnd(16, '0');
+  const clean = raw.replace(/\D/g, '');
+  
+  if (clean.length <= 4) {
+    const last4 = clean.padStart(4, '0');
+    return `••••  ••••  ••••  ${last4}`;
+  }
+
+  const padded = clean.slice(0, 16).padEnd(16, '0');
   const groups = [
-    clean.slice(0, 4),
-    masked ? '••••' : clean.slice(4, 8),
-    masked ? '••••' : clean.slice(8, 12),
-    clean.slice(12, 16),
+    padded.slice(0, 4),
+    masked ? '••••' : padded.slice(4, 8),
+    masked ? '••••' : padded.slice(8, 12),
+    padded.slice(12, 16),
   ];
   return groups.join('  ');
 }
