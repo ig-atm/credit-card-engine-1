@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus, AlertTriangle, CheckCircle2, Info } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { useDashboardStore } from '../../dashboard/store/dashboardStore';
+import { CreditScoreDial } from '../../../components/ui/CreditScoreDial';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  CIBIL PANEL (PORTED FROM CIBIL_SERVICE)
@@ -13,13 +14,6 @@ const STATUS_STYLES = {
   bad:     { text: 'text-loss',     bg: 'bg-loss/10',     border: 'border-loss/20'    },
 };
 
-function getCibilLabel(score: number): { label: string; color: string } {
-  if (score >= 800) return { label: 'Excellent', color: '#129A6D' };
-  if (score >= 750) return { label: 'Very Good', color: '#129A6D' };
-  if (score >= 700) return { label: 'Good', color: '#D9931E' };
-  if (score >= 650) return { label: 'Fair', color: '#D9931E' };
-  return { label: 'Poor', color: '#D94556' };
-}
 
 export function CibilPanel() {
   const profile = useDashboardStore((s) => s.profile);
@@ -27,8 +21,6 @@ export function CibilPanel() {
   const creditAccounts = useDashboardStore((s) => s.creditAccounts);
 
   const cibilScore = profile?.creditScore || 750;
-  const { label, color } = getCibilLabel(cibilScore);
-  const pct = ((cibilScore - 300) / 600) * 100; // 300–900 range
 
   // Dynamic calculations
   const totalLimit = creditAccounts.reduce((acc, a) => acc + a.totalLimit, 0);
@@ -82,66 +74,11 @@ export function CibilPanel() {
     },
   ];
 
-  // SVG arc gauge
-  const radius = 70;
-  const cx = 90;
-  const cy = 90;
-  const startAngle = -210;
-  const sweepAngle = 240;
-  const angleRad = (a: number) => (a * Math.PI) / 180;
-  const arcPath = (pctFill: number) => {
-    const a = startAngle + pctFill * sweepAngle / 100;
-    const x1 = cx + radius * Math.cos(angleRad(startAngle));
-    const y1 = cy + radius * Math.sin(angleRad(startAngle));
-    const x2 = cx + radius * Math.cos(angleRad(a));
-    const y2 = cy + radius * Math.sin(angleRad(a));
-    const large = sweepAngle * (pctFill / 100) > 180 ? 1 : 0;
-    return `M ${x1} ${y1} A ${radius} ${radius} 0 ${large} 1 ${x2} ${y2}`;
-  };
-
   return (
     <div className="flex flex-col gap-6">
       {/* Gauge */}
       <div className="flex flex-col items-center">
-        <div className="relative">
-          <svg width="180" height="130" viewBox="0 0 180 130" aria-label={`CIBIL score: ${cibilScore}`}>
-            {/* Track */}
-            <path
-              d={arcPath(100)}
-              fill="none"
-              stroke="currentColor"
-              className="text-canvas-300 dark:text-white/[0.08]"
-              strokeWidth="12"
-              strokeLinecap="round"
-            />
-            {/* Fill */}
-            <motion.path
-              d={arcPath(pct)}
-              fill="none"
-              stroke={color}
-              strokeWidth="12"
-              strokeLinecap="round"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 1.2, ease: 'easeOut' }}
-            />
-            {/* Score text */}
-            <text
-              x={cx}
-              y={cy + 8}
-              textAnchor="middle"
-              fontSize="28"
-              fontWeight="700"
-              className="fill-ink-primary"
-              fontFamily="Plus Jakarta Sans, Inter, sans-serif"
-            >
-              {cibilScore}
-            </text>
-            <text x={cx} y={cy + 26} textAnchor="middle" fontSize="11" fill={color} fontWeight="600">
-              {label}
-            </text>
-          </svg>
-        </div>
+        <CreditScoreDial score={cibilScore} size={220} className="mb-2" />
         <div className="flex items-center gap-6 text-xs text-ink-disabled">
           <span>300</span>
           <div className="flex-1 text-center text-ink-tertiary text-xs">TransUnion CIBIL</div>

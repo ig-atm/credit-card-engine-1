@@ -148,7 +148,17 @@ function StatPanel({
 //  HOME TAB
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { Skeleton } from './components/ui/Skeleton';
+
 function HomeTab() {
+  const [isBooting, setIsBooting] = useState(true);
+  
+  // Simulate network fetching to display premium skeleton loading
+  useEffect(() => {
+    const timer = setTimeout(() => setIsBooting(false), 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
   const creditAccounts = useDashboardStore((s) => s.creditAccounts);
   const activeCardId   = useDashboardStore((s) => s.activeCardId);
   const setActiveCard  = useDashboardStore((s) => s.setActiveCard);
@@ -219,17 +229,55 @@ function HomeTab() {
         {/* Left column: cards + stat panels + wallet optimizer */}
         <div className="flex flex-col gap-8">
           {/* Cards View: Carousel on Mobile, Grid on Desktop */}
-          <div className="flex sm:grid sm:grid-cols-2 overflow-x-auto sm:overflow-visible gap-6 pb-8 sm:pb-0 snap-x snap-mandatory sm:snap-none hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-            {userCards.map((card) => {
-              const account = creditAccounts.find((a) => a.cardId === card.id);
-              const cardWithLiveCredit = {
-                ...card,
-                creditLimit:     account ? account.totalLimit : card.creditLimit,
-                availableCredit: account
-                  ? Math.max(0, account.totalLimit - account.currentBalance)
-                  : card.availableCredit,
-              };
-              const isActive = activeCardId === card.id;
+          {isBooting ? (
+            <div className="flex sm:grid sm:grid-cols-2 overflow-x-hidden gap-6 pb-8 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
+              <Skeleton className="w-[85vw] sm:w-auto h-[230px] shrink-0" />
+              <Skeleton className="w-[85vw] sm:w-auto h-[230px] shrink-0 hidden sm:block" />
+            </div>
+          ) : (
+            <div className="flex sm:grid sm:grid-cols-2 overflow-x-auto sm:overflow-visible gap-6 pb-8 sm:pb-0 snap-x snap-mandatory sm:snap-none hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+              {userCards.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="col-span-1 sm:col-span-2 flex flex-col items-center justify-center py-16 text-center panel-glass rounded-3xl border border-dashed border-canvas-300 dark:border-white/[0.08]"
+                >
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 bg-brand-500/20 blur-3xl rounded-full" />
+                    <motion.div
+                      animate={{ y: [0, -10, 0] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                      className="relative w-32 h-20 rounded-xl border border-white/20 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md shadow-2xl overflow-hidden flex flex-col justify-between p-3"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="w-8 h-2 bg-white/20 rounded-full" />
+                        <div className="w-5 h-3 bg-white/30 rounded-sm" />
+                      </div>
+                      <div className="w-16 h-2 bg-white/20 rounded-full" />
+                    </motion.div>
+                  </div>
+                  <h3 className="text-lg font-display font-bold text-ink-primary mb-2">No Cards Added</h3>
+                  <p className="text-xs text-ink-tertiary max-w-[240px] leading-relaxed mb-6">
+                    Add your first credit card to unlock AI insights, intelligent reward tracking, and seamless spend analytics.
+                  </p>
+                  <button
+                    onClick={() => setShowAddModal(true)}
+                    className="bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold py-2.5 px-6 rounded-full shadow-ag-glow-primary transition-all active:scale-95"
+                  >
+                    Add Your First Card
+                  </button>
+                </motion.div>
+              ) : (
+                userCards.map((card) => {
+                const account = creditAccounts.find((a) => a.cardId === card.id);
+                const cardWithLiveCredit = {
+                  ...card,
+                  creditLimit:     account ? account.totalLimit : card.creditLimit,
+                  availableCredit: account
+                    ? Math.max(0, account.totalLimit - account.currentBalance)
+                    : card.availableCredit,
+                };
+                const isActive = activeCardId === card.id;
 
               return (
                 <motion.div
@@ -284,8 +332,10 @@ function HomeTab() {
                   <ActiveCard card={cardWithLiveCredit} revealed={false} />
                 </motion.div>
               );
-            })}
-          </div>
+            })
+            )}
+            </div>
+          )}
 
           {/* Add Card Button */}
           <div className="flex justify-center mb-4">
@@ -301,50 +351,60 @@ function HomeTab() {
 
           {/* ── Stat panels ──────────────────────────────────────────── */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <StatPanel
-              label="Outstanding"
-              value={formatCents(liveBalance)}
-              subtext={activeCard ? `On ${activeCard.label} card` : 'No active card'}
-              icon={TrendingUp}
-              iconBg="bg-brand-50 dark:bg-brand-500/10"
-              iconColor="text-brand-500"
-            />
+            {isBooting ? (
+              <>
+                <Skeleton className="h-[140px] w-full" />
+                <Skeleton className="h-[140px] w-full" />
+                <Skeleton className="h-[140px] w-full" />
+              </>
+            ) : (
+              <>
+                <StatPanel
+                  label="Outstanding"
+                  value={formatCents(liveBalance)}
+                  subtext={activeCard ? `On ${activeCard.label} card` : 'No active card'}
+                  icon={TrendingUp}
+                  iconBg="bg-brand-50 dark:bg-brand-500/10"
+                  iconColor="text-brand-500"
+                />
 
-            <StatPanel
-              label="Reward Points"
-              value={availablePoints.toLocaleString()}
-              subtext={`${rewards.tier.charAt(0).toUpperCase() + rewards.tier.slice(1)} tier`}
-              icon={Gift}
-              iconBg="bg-steel-50 dark:bg-steel-500/10"
-              iconColor="text-steel-500"
-            />
+                <StatPanel
+                  label="Reward Points"
+                  value={availablePoints.toLocaleString()}
+                  subtext={`${rewards.tier.charAt(0).toUpperCase() + rewards.tier.slice(1)} tier`}
+                  icon={Gift}
+                  iconBg="bg-steel-50 dark:bg-steel-500/10"
+                  iconColor="text-steel-500"
+                />
 
-            {/* Insights teaser with animated gradient border */}
-            <motion.div
-              whileHover={{ y: -3, scale: 1.01 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-              className={cn(
-                'panel-glass rounded-2xl p-5 flex flex-col justify-between h-44',
-                'cursor-pointer group relative overflow-hidden',
-                'border-gradient-animated',
-              )}
-            >
-              {/* Ambient glow blob */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-copper-500/10 dark:bg-copper-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none group-hover:scale-125 transition-transform duration-700" />
+                {/* Insights teaser with animated gradient border */}
+                <motion.div
+                  whileHover={{ y: -3, scale: 1.01 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                  className={cn(
+                    'panel-glass rounded-2xl p-5 flex flex-col justify-between h-44',
+                    'cursor-pointer group relative overflow-hidden',
+                    'border-gradient-animated',
+                  )}
+                >
+                  {/* Ambient glow blob */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-copper-500/10 dark:bg-copper-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none group-hover:scale-125 transition-transform duration-700" />
 
-              <div className="flex items-center justify-between relative z-10">
-                <p className="text-sm font-semibold text-ink-secondary">Smart Insight</p>
-                <div className="w-9 h-9 rounded-xl bg-copper-50 dark:bg-copper-500/10 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
-                  <Sparkles size={17} strokeWidth={2.2} className="text-copper-500" />
-                </div>
-              </div>
-              <div className="relative z-10 pt-2">
-                <p className="text-sm font-medium text-ink-primary leading-snug">
-                  Dining expenses down <span className="text-profit font-bold">15%</span> this week.
-                  Great job managing your spend!
-                </p>
-              </div>
-            </motion.div>
+                  <div className="flex items-center justify-between relative z-10">
+                    <p className="text-sm font-semibold text-ink-secondary">Smart Insight</p>
+                    <div className="w-9 h-9 rounded-xl bg-copper-50 dark:bg-copper-500/10 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                      <Sparkles size={17} strokeWidth={2.2} className="text-copper-500" />
+                    </div>
+                  </div>
+                  <div className="relative z-10 pt-2">
+                    <p className="text-sm font-medium text-ink-primary leading-snug">
+                      Dining expenses down <span className="text-profit font-bold">15%</span> this week.
+                      Great job managing your spend!
+                    </p>
+                  </div>
+                </motion.div>
+              </>
+            )}
           </div>
 
           {/* ── Wallet Optimizer Section ─────────────────────────────── */}
@@ -353,16 +413,39 @@ function HomeTab() {
               <h2 className="text-lg font-display font-bold text-ink-primary">Wallet Optimizer</h2>
               <p className="text-xs text-ink-tertiary">Best card in your wallet for every spend category</p>
             </div>
-            <WalletOptimizerPanel />
+            {isBooting ? (
+              <div className="flex flex-col gap-3">
+                <Skeleton className="h-[72px] w-full rounded-2xl" />
+                <Skeleton className="h-[72px] w-full rounded-2xl" />
+                <Skeleton className="h-[72px] w-full rounded-2xl" />
+              </div>
+            ) : (
+              <WalletOptimizerPanel />
+            )}
           </div>
         </div>
 
         {/* Right column: analytics and transaction feed */}
-        <aside className="xl:sticky xl:top-24 flex flex-col">
-          <SpendingAnalytics />
-          <div className="panel-glass rounded-3xl p-5">
-            <TransactionFeed limit={12} />
-          </div>
+        <aside className="xl:sticky xl:top-24 flex flex-col gap-6">
+          {isBooting ? (
+            <>
+              <Skeleton className="h-[280px] w-full rounded-3xl" />
+              <div className="panel-glass rounded-3xl p-5 flex flex-col gap-4">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
+              </div>
+            </>
+          ) : (
+            <>
+              <SpendingAnalytics />
+              <div className="panel-glass rounded-3xl p-5">
+                <TransactionFeed limit={12} />
+              </div>
+            </>
+          )}
         </aside>
       </div>
 

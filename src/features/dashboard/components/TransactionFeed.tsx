@@ -1,6 +1,6 @@
 import { useState, useRef, useId } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ChevronRight, Minus, Download } from 'lucide-react';
+import { Plus, Minus, Download } from 'lucide-react';
 
 import { cn } from '../../../lib/utils';
 import { useShallow } from 'zustand/shallow';
@@ -384,16 +384,35 @@ function EmptyState() {
     <motion.li
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3 }}
-      className="flex flex-col items-center justify-center py-16 text-center"
+      transition={{ duration: 0.5 }}
+      className="flex flex-col items-center justify-center py-12 text-center"
       aria-label="No transactions"
     >
-      <div className="w-16 h-16 rounded-2xl bg-canvas-200/60 dark:bg-canvas-300/20 flex items-center justify-center mb-5 shadow-ag-base">
-        <ChevronRight size={24} className="text-ink-disabled" />
+      <div className="relative mb-6">
+        {/* Ambient Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-brand-500/20 rounded-full blur-2xl" />
+        
+        {/* Floating Receipt Illustration */}
+        <motion.div
+          animate={{ y: [0, -8, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          className="relative w-20 h-24 panel-glass rounded-xl border border-white/10 flex flex-col items-center justify-start pt-3 overflow-hidden shadow-2xl"
+        >
+          <div className="w-12 h-1 bg-white/20 rounded-full mb-3" />
+          <div className="w-14 h-1 bg-white/10 rounded-full mb-1.5" />
+          <div className="w-10 h-1 bg-white/10 rounded-full mb-4" />
+          
+          <div className="w-full flex-1 bg-gradient-to-t from-brand-500/20 to-transparent flex items-end justify-center pb-2">
+            <div className="w-6 h-6 rounded-full bg-brand-500/30 flex items-center justify-center border border-brand-500/30">
+              <span className="text-[10px] text-brand-300 font-bold">₹</span>
+            </div>
+          </div>
+        </motion.div>
       </div>
-      <p className="text-sm font-display font-bold text-ink-secondary mb-1">No transactions yet</p>
+
+      <p className="text-sm font-display font-bold text-ink-primary mb-2">No Transactions Yet</p>
       <p className="text-xs text-ink-tertiary max-w-[220px] leading-relaxed">
-        Add your first transaction using the button above to start tracking.
+        Your spending history will appear here once you make your first purchase.
       </p>
     </motion.li>
   );

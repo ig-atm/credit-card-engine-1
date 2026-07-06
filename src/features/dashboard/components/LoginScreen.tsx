@@ -4,6 +4,8 @@ import { CreditCard, BookOpen, X, ChevronRight, Info } from 'lucide-react';
 import { SignIn, SignUp, useUser } from '@clerk/clerk-react';
 import { useDashboardStore } from '../store/dashboardStore';
 import type { AppProfile } from '../types/dashboard.types';
+import { CreditScoreDial } from '../../../components/ui/CreditScoreDial';
+import { cn } from '../../../lib/utils';
 
 export function LoginScreen() {
   const { isSignedIn, user } = useUser();
@@ -140,19 +142,39 @@ export function LoginScreen() {
             </div>
 
             {/* Salary Input + Slider */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <div className="flex justify-between items-center">
                 <label className="text-xs font-bold text-ink-secondary">Annual Salary (INR)</label>
-                <div className="relative w-36">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-ink-tertiary">₹</span>
+                <div className="relative w-40">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-ink-tertiary">₹</span>
                   <input
                     type="text"
                     value={salary.toLocaleString('en-IN')}
                     onChange={(e) => handleSalaryInputChange(e.target.value)}
-                    className="w-full input-premium pl-6 pr-2 py-1 text-xs font-bold text-right"
+                    className="w-full input-premium pl-7 pr-3 py-2 text-sm font-bold text-right tabular-nums bg-canvas-50 dark:bg-canvas-200 focus:ring-2 focus:ring-brand-500/50"
                   />
                 </div>
               </div>
+              
+              {/* Quick Select Salary Pills */}
+              <div className="flex gap-2">
+                {[500000, 1000000, 1500000, 2500000].map((val) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setSalary(val)}
+                    className={cn(
+                      "flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all border",
+                      salary === val 
+                        ? "bg-brand-500 text-white border-brand-500 shadow-ag-glow-primary" 
+                        : "bg-surface border-canvas-300 dark:border-white/5 text-ink-secondary hover:bg-canvas-200"
+                    )}
+                  >
+                    {val >= 100000 ? `${val / 100000}L` : val.toLocaleString()}
+                  </button>
+                ))}
+              </div>
+
               <input
                 type="range"
                 min={100000}
@@ -160,39 +182,42 @@ export function LoginScreen() {
                 step={50000}
                 value={salary}
                 onChange={(e) => handleSalarySliderChange(Number(e.target.value))}
-                className="w-full accent-brand-500 bg-canvas-300 h-1.5 rounded-lg appearance-none cursor-pointer"
+                className="w-full accent-brand-500 bg-canvas-300 h-1.5 rounded-lg appearance-none cursor-pointer mt-1"
               />
-              <div className="flex justify-between text-[10px] text-ink-disabled font-medium">
-                <span>₹1 Lakh</span>
-                <span>₹50 Lakhs</span>
-              </div>
             </div>
 
-            {/* Credit Score Input + Slider */}
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center">
-                <label className="text-xs font-bold text-ink-secondary">CIBIL Credit Score</label>
+            <hr className="border-canvas-300 dark:border-white/[0.05]" />
+
+            {/* Credit Score Input + Dial */}
+            <div className="flex gap-6 items-center">
+              <div className="flex-shrink-0">
+                <CreditScoreDial score={creditScore} size={110} animate={false} />
+              </div>
+              <div className="flex flex-col gap-3 flex-1">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold text-ink-secondary">CIBIL Score</label>
+                  <input
+                    type="number"
+                    min={300}
+                    max={900}
+                    value={creditScore || ''}
+                    onChange={(e) => handleScoreInputChange(e.target.value)}
+                    className="w-20 input-premium py-1.5 px-3 text-sm font-bold text-right tabular-nums bg-canvas-50 dark:bg-canvas-200 focus:ring-2 focus:ring-brand-500/50"
+                  />
+                </div>
                 <input
-                  type="number"
+                  type="range"
                   min={300}
                   max={900}
-                  value={creditScore || ''}
-                  onChange={(e) => handleScoreInputChange(e.target.value)}
-                  className="w-20 input-premium py-1 px-2 text-xs font-bold text-right"
+                  step={1}
+                  value={creditScore}
+                  onChange={(e) => handleScoreSliderChange(Number(e.target.value))}
+                  className="w-full accent-brand-500 bg-canvas-300 h-1.5 rounded-lg appearance-none cursor-pointer"
                 />
-              </div>
-              <input
-                type="range"
-                min={300}
-                max={900}
-                step={1}
-                value={creditScore}
-                onChange={(e) => handleScoreSliderChange(Number(e.target.value))}
-                className="w-full accent-brand-500 bg-canvas-300 h-1.5 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="flex justify-between text-[10px] text-ink-disabled font-medium">
-                <span>300 (Poor)</span>
-                <span>900 (Excellent)</span>
+                <div className="flex justify-between text-[9px] text-ink-disabled font-bold uppercase tracking-wider">
+                  <span>300 (Poor)</span>
+                  <span>900 (Excellent)</span>
+                </div>
               </div>
             </div>
 
