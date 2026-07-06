@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Zap, Search, X, Plus } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '../../../lib/utils';
 import { CARD_DATASET, type SpendCategory } from '../data/cardDataset';
 import { BankLogo } from '../../cards/components/BankLogo';
@@ -380,7 +381,7 @@ function WalletOptimizerTab() {
                       const expYear = 2000 + parseInt(expYearStr, 10);
                       const now = new Date();
                       if (expYear < now.getFullYear() || (expYear === now.getFullYear() && expMonth < now.getMonth() + 1)) {
-                        alert('your card is already expired');
+                        toast.error('Your card is already expired');
                         return;
                       }
                       const limitNum = parseFloat(form.cardLimit);

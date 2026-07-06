@@ -9,6 +9,7 @@ import posthog from 'posthog-js'
 import { PostHogProvider } from 'posthog-js/react'
 
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { Toaster } from 'sonner'
 
 // Import your publishable key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -70,6 +71,7 @@ const appContent = (
       }}
     >
       <App />
+      <Toaster theme="dark" position="top-center" />
     </ClerkProvider>
 );
 

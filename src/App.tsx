@@ -17,6 +17,7 @@ import {
   Info,
   Target,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import type { TabId } from './components/layout/Sidebar';
@@ -574,7 +575,7 @@ function HomeTab() {
                       const expYear = 2000 + parseInt(expYearStr, 10);
                       const now = new Date();
                       if (expYear < now.getFullYear() || (expYear === now.getFullYear() && expMonth < now.getMonth() + 1)) {
-                        alert('your card is already expired');
+                        toast.error('Your card is already expired');
                         return;
                       }
                       const limitNum = parseFloat(cardLimitInput);
