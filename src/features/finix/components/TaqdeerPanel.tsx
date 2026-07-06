@@ -135,9 +135,9 @@ export function TaqdeerPanel() {
 
     // Simulate AI thinking delay (400–900ms)
     const delay = 400 + Math.random() * 500;
-    setTimeout(() => {
+    setTimeout(async () => {
       const userCards = useDashboardStore.getState().userCards;
-      const { content } = generateTaqdeerResponse(trimmed, userCards);
+      const { content } = await generateTaqdeerResponse(trimmed, userCards);
       const aiMsg: TaqdeerMessage = {
         id: (Date.now() + 1).toString(),
         role: 'ai',

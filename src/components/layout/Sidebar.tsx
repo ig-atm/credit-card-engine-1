@@ -6,7 +6,6 @@ import {
   BarChart3,
   ChevronLeft,
   ChevronRight,
-  Layers,
   LogOut,
   User,
   Gift,
@@ -62,8 +61,8 @@ export function Sidebar({ activeTab, onTabChange, collapsed, onToggleCollapse }:
         'flex items-center gap-3 px-5 h-[72px] flex-shrink-0',
         'border-b border-canvas-200/50 dark:border-white/[0.04]',
       )}>
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 dark:from-brand-400 dark:to-brand-600 flex items-center justify-center shadow-ag-glow-primary flex-shrink-0">
-          <Layers size={18} className="text-white" strokeWidth={2.2} />
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-ag-glow-primary flex-shrink-0 overflow-hidden bg-black">
+          <img src="/logo.jpg" alt="Renocred" className="w-full h-full object-cover" />
         </div>
         <AnimatePresence>
           {!collapsed && (

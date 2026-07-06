@@ -4,6 +4,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 
+  Hide the Clerk development mode watermark/badge which
+  has a dark background and disrupts the glassmorphic aesthetic.
+*/
+.cl-internal-b3al4j, 
+.cl-internal-1dauvpw,
+.cl-watermark,
+[class*="cl-internal"] {
+  /* We target the development mode badge specifically if possible, 
+     or just hide the footer badge container */
+}
+
+.cl-footer > div:last-child {
+  display: none !important;
+}
+
+/* Force transparent backgrounds to remove dark unstyled boxes */
+.cl-card,
+.cl-footer,
+.cl-internal-1tjggu1,
+.cl-internal-1fml4ku {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Force hide the native Clerk footer action to prevent redirects */
+.cl-footerAction {
+  display: none !important;
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
    ANTI-GRAVITY GLOBAL BASE — PREMIUM EDITION
    A pristine canvas. Nothing competes with the floating components.

@@ -28,8 +28,8 @@ function getRewardRateForCard(cardId: string, category: SpendCategory): number {
   // Otherwise, look it up in the master dataset
   const datasetCard = CARD_DATASET.find((c) => c.id === cardId);
   if (datasetCard) {
-    const r = datasetCard.rewards.find((x) => x.category === category);
-    return r ? r.rate : datasetCard.baseRewardRate;
+    const r = datasetCard.rewards?.find((x) => x.category === category);
+    return r ? r.rate : (datasetCard.baseRewardRate || 0.5);
   }
 
   return 0.5; // default fallback
@@ -94,7 +94,6 @@ function WalletOptimizerTab() {
     cardNumber: '',
     cardName: '',
     cardExpiry: '',
-    cardCvv: '', // CVV is collected in client-side state purely for rendering/previewing the card layout and is never saved or transmitted server-side.
     cardLimit: '',
   });
   const [formError, setFormError] = useState('');
@@ -106,7 +105,6 @@ function WalletOptimizerTab() {
       cardNumber: '',
       cardName: '',
       cardExpiry: '',
-      cardCvv: '',
       cardLimit: '',
     });
     setFormError('');
@@ -120,8 +118,8 @@ function WalletOptimizerTab() {
 
   const filteredCardsToAdd = availableCardsToAdd.filter(
     (c) =>
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.bank.toLowerCase().includes(searchQuery.toLowerCase())
+      (c.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (c.bank || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -230,7 +228,6 @@ function WalletOptimizerTab() {
                               cardNumber: '',
                               cardName: profile?.name || '',
                               cardExpiry: '',
-                              cardCvv: '',
                               cardLimit: c.minIncome ? String(Math.floor(c.minIncome * 0.5)) : '150000',
                             });
                           }}
@@ -305,7 +302,7 @@ function WalletOptimizerTab() {
                       <label className="text-[11px] font-bold text-ink-secondary">Cardholder Name</label>
                       <input
                         type="text"
-                        placeholder="e.g. Atharva Mishra"
+                        placeholder="e.g. Aditya Sinha"
                         value={form.cardName}
                         onChange={(e) => setForm(prev => ({ ...prev, cardName: e.target.value }))}
                         className="input-premium py-2 px-3 text-xs"
@@ -349,29 +346,17 @@ function WalletOptimizerTab() {
                       </div>
 
                       <div className="flex flex-col gap-1 text-left">
-                        <label className="text-[11px] font-bold text-ink-secondary">CVV</label>
-                        <input
-                          type="password"
-                          maxLength={3}
-                          placeholder="•••"
-                          value={form.cardCvv}
-                          onChange={(e) => setForm(prev => ({ ...prev, cardCvv: e.target.value.replace(/[^0-9]/g, '').slice(0, 3) }))}
-                          className="input-premium py-2 px-3 text-xs"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1 text-left">
-                      <label className="text-[11px] font-bold text-ink-secondary">Credit Limit (INR)</label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-tertiary">₹</span>
-                        <input
-                          type="number"
-                          placeholder="e.g. 300000"
-                          value={form.cardLimit}
-                          onChange={(e) => setForm(prev => ({ ...prev, cardLimit: e.target.value }))}
-                          className="w-full input-premium py-2 pl-7 pr-3 text-xs font-semibold"
-                        />
+                        <label className="text-[11px] font-bold text-ink-secondary">Credit Limit (INR)</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-tertiary">₹</span>
+                          <input
+                            type="number"
+                            placeholder="e.g. 300000"
+                            value={form.cardLimit}
+                            onChange={(e) => setForm(prev => ({ ...prev, cardLimit: e.target.value }))}
+                            className="w-full input-premium py-2 pl-7 pr-3 text-xs font-semibold"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -390,8 +375,13 @@ function WalletOptimizerTab() {
                       if (!expiryRegex.test(form.cardExpiry)) {
                         return setFormError('Expiry must be a valid MM/YY format (months 01-12).');
                       }
-                      if (form.cardCvv.length < 3) {
-                        return setFormError('CVV must be 3 digits.');
+                      const [expMonthStr, expYearStr] = form.cardExpiry.split('/');
+                      const expMonth = parseInt(expMonthStr, 10);
+                      const expYear = 2000 + parseInt(expYearStr, 10);
+                      const now = new Date();
+                      if (expYear < now.getFullYear() || (expYear === now.getFullYear() && expMonth < now.getMonth() + 1)) {
+                        alert('your card is already expired');
+                        return;
                       }
                       const limitNum = parseFloat(form.cardLimit);
                       if (isNaN(limitNum) || limitNum <= 0) {
@@ -403,7 +393,8 @@ function WalletOptimizerTab() {
                         pan: form.cardNumber,
                         cardholderName: form.cardName.trim(),
                         expiry: form.cardExpiry,
-                        network: selectedTemplate.network.toLowerCase() as any,
+                        network: (selectedTemplate.network || 'visa').toLowerCase() as any,
+                        bank: selectedTemplate.bank,
                         status: 'active',
                         availableCredit: limitNum * 100,
                         creditLimit: limitNum * 100,

@@ -7,10 +7,17 @@
 import type { SpendCategory } from './cardDataset';
 
 /** Map merchant name keywords (lowercase) to spend category */
-const MERCHANT_CATEGORY_MAP: Record<string, SpendCategory> = {
+export const MERCHANT_CATEGORY_MAP: Record<string, SpendCategory> = {
   // Dining & Food
   zomato: 'dining',
   swiggy: 'dining',
+  licious: 'dining',
+  freshtohome: 'dining',
+  eatsure: 'dining',
+  faasos: 'dining',
+  behrouz: 'dining',
+  'baskin robbins': 'dining',
+  naturals: 'dining',
   blinkit: 'dining',
   bigbasket: 'groceries',
   zepto: 'groceries',
@@ -37,6 +44,16 @@ const MERCHANT_CATEGORY_MAP: Record<string, SpendCategory> = {
   grocery: 'groceries',
 
   // Shopping & Retail
+  croma: 'shopping',
+  'reliance digital': 'shopping',
+  'vijay sales': 'shopping',
+  'tata cliq': 'shopping',
+  lenskart: 'shopping',
+  firstcry: 'shopping',
+  max: 'shopping',
+  pantaloons: 'shopping',
+  westside: 'shopping',
+  "d'decor": 'shopping',
   amazon: 'shopping',
   flipkart: 'shopping',
   myntra: 'shopping',
@@ -53,6 +70,11 @@ const MERCHANT_CATEGORY_MAP: Record<string, SpendCategory> = {
   apple: 'shopping',
 
   // Travel
+  redbus: 'travel',
+  agoda: 'travel',
+  expedia: 'travel',
+  skyscanner: 'travel',
+  'paytm flights': 'travel',
   indigo: 'travel',
   'air india': 'travel',
   vistara: 'travel',
@@ -82,6 +104,8 @@ const MERCHANT_CATEGORY_MAP: Record<string, SpendCategory> = {
   booking: 'travel',
 
   // Transport / Cabs
+  'namma yatri': 'transport',
+  blusmart: 'transport',
   ola: 'transport',
   uber: 'transport',
   rapido: 'transport',
@@ -92,6 +116,8 @@ const MERCHANT_CATEGORY_MAP: Record<string, SpendCategory> = {
   fastag: 'fuel',
 
   // Fuel
+  shell: 'fuel',
+  nayara: 'fuel',
   petrol: 'fuel',
   diesel: 'fuel',
   bpcl: 'fuel',
@@ -103,6 +129,10 @@ const MERCHANT_CATEGORY_MAP: Record<string, SpendCategory> = {
   pump: 'fuel',
 
   // Entertainment
+  jiocinema: 'entertainment',
+  'epic games': 'entertainment',
+  nintendo: 'entertainment',
+  xbox: 'entertainment',
   netflix: 'entertainment',
   amazon_prime: 'entertainment',
   'prime video': 'entertainment',
@@ -140,6 +170,11 @@ const MERCHANT_CATEGORY_MAP: Record<string, SpendCategory> = {
   '1mg': 'health',
 
   // Utilities & Bills
+  paytm: 'utilities',
+  phonepe: 'utilities',
+  gpay: 'utilities',
+  cred: 'utilities',
+  'amazon pay': 'utilities',
   electricity: 'utilities',
   water: 'utilities',
   gas: 'utilities',

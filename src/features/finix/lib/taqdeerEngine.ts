@@ -139,7 +139,7 @@ Please add one or more credit cards on the **Dashboard** home screen to evaluate
         userCards.forEach((uc) => {
           const datasetCard = CARD_DATASET.find((dc) => dc.id === uc.id);
           if (datasetCard) {
-            const rate = datasetCard.rewards.find((r) => r.category === cat)?.rate ?? datasetCard.baseRewardRate;
+            const rate = datasetCard.rewards?.find((r) => r.category === cat)?.rate ?? datasetCard.baseRewardRate;
             if (rate > maxRate) maxRate = rate;
           } else {
             if (1 > maxRate) maxRate = 1;
@@ -306,11 +306,30 @@ ${bankCards.map((c, i) => `${i + 1}. **${c.name}** (Fee: ₹${c.annualFee})
   },
 ];
 
-export function generateTaqdeerResponse(
+export async function generateTaqdeerResponse(
   query: string,
   userCards: CardData[] = [],
-): { content: string; cards?: FinixCard[] } {
+): Promise<{ content: string; cards?: FinixCard[] }> {
   const lower = query.toLowerCase().trim();
+
+  // 0. TRY PYTHON BACKEND (BITEXT DATASET INTENT ENGINE)
+  try {
+    const response = await fetch("http://localhost:8000/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, userCards })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.intent !== "unknown") {
+        return { content: data.content };
+      }
+      // If the backend didn't find a match, it will continue to the local engine below!
+    }
+  } catch (error) {
+    console.warn("Taqdeer AI Backend not reachable, falling back to local engine.");
+  }
 
   // Match query against intent registry
   const matchedIntent = INTENT_REGISTRY.find((intent) => intent.test(lower, query, userCards));
@@ -335,7 +354,7 @@ export function generateTaqdeerResponse(
   userCards.forEach((uc) => {
     const dc = CARD_DATASET.find((c) => c.id === uc.id);
     if (dc) {
-      const rate = dc.rewards.find((r) => r.category === category)?.rate ?? dc.baseRewardRate;
+      const rate = dc.rewards?.find((r) => r.category === category)?.rate ?? dc.baseRewardRate;
       if (rate > maxUserRate) {
         maxUserRate = rate;
         bestUserCard = uc;
@@ -390,8 +409,8 @@ function getBestCardForCategory(category: SpendCategory): FinixCard {
   let bestRate = 0;
 
   for (const card of CARD_DATASET) {
-    const catReward = card.rewards.find((r) => r.category === category);
-    const rate = catReward ? catReward.rate : card.baseRewardRate;
+    const catReward = card.rewards?.find((r) => r.category === category);
+    const rate = catReward ? catReward.rate : (card.baseRewardRate || 0.5);
     if (rate > bestRate) {
       bestRate = rate;
       best = card;
@@ -402,8 +421,8 @@ function getBestCardForCategory(category: SpendCategory): FinixCard {
 }
 
 function getCardRewardForCategory(card: FinixCard, category: SpendCategory): number {
-  const catReward = card.rewards.find((r) => r.category === category);
-  return catReward ? catReward.rate : card.baseRewardRate;
+  const catReward = card.rewards?.find((r) => r.category === category);
+  return catReward ? catReward.rate : (card.baseRewardRate || 0.5);
 }
 
 function extractMerchant(query: string): string | null {

@@ -5,7 +5,7 @@ interface BankLogoProps {
 }
 
 export function BankLogo({ bank, className = '' }: BankLogoProps) {
-  const normalizedBank = (bank || 'Unknown Bank').toUpperCase().replace(/\s+/g, '');
+  const normalizedBank = (bank || 'Unknown Bank').trim().toUpperCase().replace(/\s+/g, '');
   let bg = '#52525b'; // default fallback dark gray
   let initials = 'BNK';
   let textColor = '#ffffff';
@@ -99,7 +99,7 @@ export function BankLogo({ bank, className = '' }: BankLogoProps) {
       break;
     default:
       // Dynamically extract up to 4 initials from the bank name
-      const cleanName = bank.trim().toUpperCase();
+      const cleanName = normalizedBank;
       const words = cleanName.split(/[\s_-]+/);
       if (words.length >= 4) {
         initials = (words[0][0] + words[1][0] + words[2][0] + words[3][0]).slice(0, 4);

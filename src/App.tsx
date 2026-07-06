@@ -171,7 +171,6 @@ function HomeTab() {
   const [cardNumber, setCardNumber] = useState('');
   const [cardNameInput, setCardNameInput] = useState('');
   const [cardExpiryInput, setCardExpiryInput] = useState('');
-  const [cardCvvInput, setCardCvvInput] = useState('');
   const [cardLimitInput, setCardLimitInput] = useState('');
   const [formError, setFormError] = useState('');
 
@@ -181,7 +180,6 @@ function HomeTab() {
     setCardNumber('');
     setCardNameInput('');
     setCardExpiryInput('');
-    setCardCvvInput('');
     setCardLimitInput('');
     setFormError('');
     setSearchQuery('');
@@ -207,10 +205,10 @@ function HomeTab() {
       {/* ── Greeting ──────────────────────────────────────────────── */}
       <div className="mb-8">
         <p className="text-ink-tertiary text-xs font-semibold tracking-[0.2em] uppercase mb-1">
-          {getGreeting()}
+          Overview
         </p>
-        <h1 className="text-4xl lg:text-5xl font-display font-bold tracking-tight text-gradient-brand">
-          Your renocred Dashboard
+        <h1 className="text-4xl lg:text-5xl font-display font-bold tracking-tight text-ink-primary">
+          {getGreeting()}, <span className="text-gradient-brand">{profile?.name?.split(' ')[0] || 'there'}</span>
         </h1>
       </div>
 
@@ -542,29 +540,17 @@ function HomeTab() {
                       </div>
 
                       <div className="flex flex-col gap-1 text-left">
-                        <label className="text-[11px] font-bold text-ink-secondary">CVV</label>
-                        <input
-                          type="password"
-                          maxLength={3}
-                          placeholder="•••"
-                          value={cardCvvInput}
-                          onChange={(e) => setCardCvvInput(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))}
-                          className="input-premium py-2 px-3 text-xs"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1 text-left">
-                      <label className="text-[11px] font-bold text-ink-secondary">Credit Limit (INR)</label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-tertiary">₹</span>
-                        <input
-                          type="number"
-                          placeholder="e.g. 300000"
-                          value={cardLimitInput}
-                          onChange={(e) => setCardLimitInput(e.target.value)}
-                          className="w-full input-premium py-2 pl-7 pr-3 text-xs font-semibold"
-                        />
+                        <label className="text-[11px] font-bold text-ink-secondary">Credit Limit (INR)</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-tertiary">₹</span>
+                          <input
+                            type="number"
+                            placeholder="e.g. 300000"
+                            value={cardLimitInput}
+                            onChange={(e) => setCardLimitInput(e.target.value)}
+                            className="w-full input-premium py-2 pl-7 pr-3 text-xs font-semibold"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -583,8 +569,13 @@ function HomeTab() {
                       if (!expiryRegex.test(cardExpiryInput)) {
                         return setFormError('Expiry must be a valid MM/YY format (months 01-12).');
                       }
-                      if (cardCvvInput.length < 3) {
-                        return setFormError('CVV must be 3 digits.');
+                      const [expMonthStr, expYearStr] = cardExpiryInput.split('/');
+                      const expMonth = parseInt(expMonthStr, 10);
+                      const expYear = 2000 + parseInt(expYearStr, 10);
+                      const now = new Date();
+                      if (expYear < now.getFullYear() || (expYear === now.getFullYear() && expMonth < now.getMonth() + 1)) {
+                        alert('your card is already expired');
+                        return;
                       }
                       const limitNum = parseFloat(cardLimitInput);
                       if (isNaN(limitNum) || limitNum <= 0) {

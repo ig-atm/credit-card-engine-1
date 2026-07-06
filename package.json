@@ -10,10 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.61.8",
+    "@clerk/themes": "^2.4.57",
+    "@sentry/react": "^10.63.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.42.0",
     "immer": "^11.1.8",
     "lucide-react": "^1.21.0",
+    "posthog-js": "^1.396.6",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "tailwind-merge": "^3.6.0",

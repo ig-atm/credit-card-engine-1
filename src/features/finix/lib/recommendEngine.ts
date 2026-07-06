@@ -104,7 +104,7 @@ function scoreCard(card: FinixCard, profile: UserProfile): number {
   // Top category = 5× weight, second = 4×, ... minimum 1×
   profile.topCategories.forEach((category, idx) => {
     const weight = Math.max(5 - idx, 1);
-    const catReward = card.rewards.find((r) => r.category === category);
+    const catReward = card.rewards?.find((r) => r.category === category);
     const rate = catReward ? catReward.rate : card.baseRewardRate;
     score += rate * weight;
   });
