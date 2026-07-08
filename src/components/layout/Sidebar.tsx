@@ -42,9 +42,12 @@ interface SidebarProps {
   onToggleCollapse: () => void;
 }
 
+import { useClerk } from '@clerk/clerk-react';
+
 export function Sidebar({ activeTab, onTabChange, collapsed, onToggleCollapse }: SidebarProps) {
   const profile = useDashboardStore((s) => s.profile);
   const logout = useDashboardStore((s) => s.logout);
+  const { signOut } = useClerk();
 
   return (
     <motion.aside
@@ -195,7 +198,7 @@ export function Sidebar({ activeTab, onTabChange, collapsed, onToggleCollapse }:
                     {profile?.name || "Atharva Kulkarni"}
                   </p>
                   <button 
-                    onClick={(e) => { e.stopPropagation(); logout(); }} 
+                    onClick={(e) => { e.stopPropagation(); logout(); signOut(); }} 
                     className="text-ink-disabled hover:text-loss transition-colors p-1 rounded-lg"
                     title="Logout"
                   >

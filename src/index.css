@@ -515,4 +515,90 @@
     66% { transform: translate(-1px, 2px); }
     100% { transform: translate(1px, -2px); }
   }
+  /* ── Clerk Auth Overrides ──────────────────────────────────────────────── */
+
+  /* Completely hide the "Last Used" badge */
+  .cl-lastAuthenticationStrategyBadge,
+  [data-localization-key="lastAuthenticationStrategy"] {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  /* Hide "Optional" text on form fields */
+  .cl-formFieldLabelRow span,
+  .cl-formFieldInfoText,
+  [data-localization-key*="optional"],
+  [data-localization-key*="Optional"] {
+    display: none !important;
+  }
+
+  /* Hide Clerk's internal header & footer — we use our own tab switcher */
+  .cl-headerTitle,
+  .cl-headerSubtitle,
+  .cl-footer {
+    display: none !important;
+  }
+
+  /* ── Prevent green border clipping on ALL Clerk containers ── */
+  .cl-rootBox,
+  .cl-cardBox,
+  .cl-card,
+  .cl-main,
+  .cl-form,
+  .cl-formFieldRow,
+  .cl-formField,
+  .cl-socialButtons,
+  .cl-socialButtonsBlockButtonArrow,
+  [class*="cl-internal-"] {
+    overflow: visible !important;
+  }
+
+  /* Add breathing room on form field rows so borders aren't flush-clipped */
+  .cl-formFieldRow {
+    padding: 1px !important;
+  }
+
+  /* Clerk internal card — transparent, no shadow, no border */
+  .cl-card {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .cl-cardBox {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Remove rogue shadows/outlines on interactive elements */
+  .cl-socialButtonsBlockButton,
+  .cl-formButtonPrimary,
+  .cl-otpCodeFieldInput {
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+  /* Keep button positioned for badge reference */
+  .cl-socialButtonsBlockButton {
+    position: relative !important;
+  }
+
+  /* Symmetrical border-radius on inputs and social buttons */
+  .cl-formFieldInput,
+  .cl-socialButtonsBlockButton {
+    border-radius: 0.75rem !important;
+  }
+
+  .cl-formButtonPrimary {
+    border-radius: 0.75rem !important;
+    border: none !important;
+  }
+
+  /* Social buttons wrapper full-width */
+  .cl-socialButtons {
+    width: 100% !important;
+  }
 }

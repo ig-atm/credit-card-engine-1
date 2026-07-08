@@ -29,7 +29,7 @@ export function CreditScoreDial({ score, size = 120, className, animate = true }
   let label = 'Poor';
 
   if (validScore >= 750) {
-    colorClass = 'text-profit stroke-profit'; // Excellent
+    colorClass = 'text-brand-500 stroke-brand-500'; // Excellent
     label = 'Excellent';
   } else if (validScore >= 650) {
     colorClass = 'text-caution stroke-caution'; // Good
@@ -67,9 +67,6 @@ export function CreditScoreDial({ score, size = 120, className, animate = true }
           animate={{ strokeDashoffset: dashOffset + (circumference * 0.25) }}
           transition={{ duration: 1.5, ease: 'easeOut' }}
           strokeLinecap="round"
-          style={{
-            filter: validScore >= 650 ? `drop-shadow(0px 0px 8px ${validScore >= 750 ? 'rgba(52,211,153,0.6)' : 'rgba(251,191,36,0.6)'})` : 'none',
-          }}
         />
       </svg>
       

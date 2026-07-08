@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreditCard, BookOpen, X, ChevronRight, Info } from 'lucide-react';
 import { SignIn, SignUp, useUser } from '@clerk/clerk-react';
@@ -10,10 +10,12 @@ import { cn } from '../../../lib/utils';
 export function LoginScreen() {
   const { isSignedIn, user } = useUser();
   const login = useDashboardStore((s) => s.login);
-
+  const resetStore = useDashboardStore((s) => s._reset);
   const [showBlog, setShowBlog] = useState(false);
   const [showLegal, setShowLegal] = useState<'privacy' | 'terms' | null>(null);
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [livePreviewName, setLivePreviewName] = useState('');
+  const authPanelRef = useRef<HTMLDivElement>(null);
 
   // Credit profile state (Step 2)
   const [salary, setSalary] = useState(1500000);
@@ -22,20 +24,62 @@ export function LoginScreen() {
 
   // Listen to hash changes to toggle between sign-in and sign-up
   useEffect(() => {
-    const handleHashChange = () => {
-      if (window.location.hash.includes('sign-up')) {
-        setMode('signup');
-      } else {
-        setMode('signin');
+    const handleHash = () => {
+      if (window.location.hash === '#sign-up') setMode('signup');
+      else if (window.location.hash === '#sign-in') setMode('signin');
+    };
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  const handleDemoLogin = () => {
+    resetStore();
+    login({
+      name: 'Demo User',
+      email: 'demo@renocred.com',
+      phone: '+91 98765 43210',
+      avatar: 'https://ui-avatars.com/api/?name=Demo+User&background=1F5247&color=fff',
+      salary: 2500000,
+      creditScore: 810,
+    });
+  };
+
+  // Mirror whatever is typed into Clerk's first-name field onto the card preview
+  useEffect(() => {
+    if (!authPanelRef.current) return;
+
+    const syncName = () => {
+      const firstNameInput = authPanelRef.current?.querySelector<HTMLInputElement>(
+        'input[name="firstName"], input[id*="firstName"], input[autocomplete="given-name"]'
+      );
+      if (firstNameInput) {
+        setLivePreviewName(firstNameInput.value);
       }
     };
-    
-    // Check initial hash
-    handleHashChange();
 
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+    // MutationObserver to detect when Clerk renders the input
+    const observer = new MutationObserver(() => {
+      const firstNameInput = authPanelRef.current?.querySelector<HTMLInputElement>(
+        'input[name="firstName"], input[id*="firstName"], input[autocomplete="given-name"]'
+      );
+      if (firstNameInput) {
+        firstNameInput.addEventListener('input', syncName);
+        // Initial value
+        syncName();
+      }
+    });
+
+    observer.observe(authPanelRef.current, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      // Cleanup any lingering listeners by re-querying
+      authPanelRef.current?.querySelectorAll<HTMLInputElement>(
+        'input[name="firstName"], input[id*="firstName"], input[autocomplete="given-name"]'
+      ).forEach(el => el.removeEventListener('input', syncName));
+    };
+  }, [mode]);
 
   const handleSalarySliderChange = (val: number) => setSalary(val);
   const handleSalaryInputChange = (valStr: string) => {
@@ -66,7 +110,10 @@ export function LoginScreen() {
     login(profile);
   };
 
-  const displayName = isSignedIn ? (user?.fullName || user?.firstName || 'Your Name') : 'Your Name';
+  // During sign-up, show whatever is typed in real time; fall back to signed-in name or placeholder
+  const displayName = isSignedIn
+    ? (user?.fullName || user?.firstName || 'Your Name')
+    : (livePreviewName.trim() || 'Your Name');
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-mesh p-4 lg:p-8">
@@ -97,32 +144,83 @@ export function LoginScreen() {
           </div>
 
           {/* Interactive Card Preview */}
-          <div className="relative mt-4 w-full max-w-sm h-56 rounded-3xl p-6 bg-gradient-to-br from-[#1b2a26] via-[#151f1c] to-[#0c100e] border border-white/[0.06] shadow-2xl flex flex-col justify-between overflow-hidden group">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-xs text-brand-400 tracking-[0.2em] uppercase font-bold">renocred select</p>
-                <p className="text-[10px] text-ink-tertiary mt-1">Virtual Credentials</p>
-              </div>
-              <div className="w-10 h-7 bg-white/10 rounded-md backdrop-blur border border-white/10 flex items-center justify-center">
-                <CreditCard size={16} className="text-brand-300" />
-              </div>
-            </div>
-            <div>
-              <p className="text-xs text-ink-tertiary font-mono tracking-widest">••••  ••••  ••••  4242</p>
-              <div className="flex justify-between items-end mt-4">
+          <div
+            className="relative mt-4 w-full max-w-sm rounded-2xl overflow-hidden group transition-all duration-500"
+            style={{ perspective: '800px' }}
+          >
+            {/* Card face */}
+            <div
+              className="relative h-56 rounded-2xl p-6 flex flex-col justify-between transition-transform duration-500 group-hover:scale-[1.02]"
+              style={{
+                background: 'linear-gradient(145deg, rgba(31,82,71,0.25) 0%, rgba(15,41,36,0.6) 40%, rgba(10,28,24,0.85) 100%)',
+                transform: 'rotateX(2deg) rotateY(-1deg)',
+                transformStyle: 'preserve-3d',
+                boxShadow: `
+                  0 1px 0 0 rgba(255,255,255,0.08) inset,
+                  -1px 0 0 0 rgba(255,255,255,0.04) inset,
+                  1px 0 0 0 rgba(0,0,0,0.2) inset,
+                  0 -1px 0 0 rgba(0,0,0,0.3) inset,
+                  0 4px 6px -1px rgba(0,0,0,0.3),
+                  0 10px 20px -5px rgba(0,0,0,0.4),
+                  0 25px 50px -12px rgba(0,0,0,0.5),
+                  0 0 30px -5px rgba(31,82,71,0.15)
+                `,
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}
+            >
+              {/* Top highlight edge */}
+              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none" />
+              {/* Left highlight edge */}
+              <div className="absolute top-0 left-0 bottom-0 w-[1px] bg-gradient-to-b from-white/10 via-white/5 to-transparent pointer-events-none" />
+
+              {/* Ambient brand glow */}
+              <div className="absolute top-0 right-0 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-brand-400/5 rounded-full blur-2xl pointer-events-none" />
+
+              <div className="relative z-10 flex justify-between items-start">
                 <div>
-                  <p className="text-[9px] uppercase tracking-widest text-ink-disabled font-medium">Cardholder</p>
-                  <p className="text-sm font-bold text-white tracking-wide truncate max-w-[200px]">
-                    {displayName}
-                  </p>
+                  <p className="text-xs text-brand-500 tracking-[0.2em] uppercase font-bold">renocred select</p>
+                  <p className="text-[10px] text-ink-tertiary mt-1">Virtual Credentials</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-[9px] uppercase tracking-widest text-ink-disabled font-medium">Credit Score</p>
-                  <p className="text-sm font-bold text-profit">{isSignedIn ? creditScore : '750'}</p>
+                <div className="w-10 h-7 bg-brand-500/10 rounded-md backdrop-blur-sm border border-brand-500/15 flex items-center justify-center">
+                  <CreditCard size={16} className="text-brand-500" />
+                </div>
+              </div>
+
+              <div className="relative z-10">
+                {/* EMV Chip */}
+                <div className="w-8 h-6 rounded-[3px] bg-gradient-to-br from-brand-300/30 to-brand-500/15 border border-brand-500/20 mb-3 grid grid-cols-2 grid-rows-2">
+                  <div className="border-r border-b border-brand-500/15" />
+                  <div className="border-b border-brand-500/15" />
+                  <div className="border-r border-brand-500/15" />
+                  <div />
+                </div>
+
+                <p className="text-xs text-ink-secondary font-mono tracking-[0.2em]">••••  ••••  ••••  4242</p>
+                <div className="flex justify-between items-end mt-3">
+                  <div>
+                    <p className="text-[9px] uppercase tracking-widest text-ink-disabled font-semibold">Cardholder</p>
+                    <p className="text-sm font-bold text-ink-primary tracking-wide truncate max-w-[200px]">
+                      {displayName}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[9px] uppercase tracking-widest text-ink-disabled font-semibold">Credit Score</p>
+                    <p className="text-sm font-bold text-brand-500">{isSignedIn ? creditScore : '750'}</p>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Card bottom edge / thickness shadow */}
+            <div
+              className="mx-2 h-2 rounded-b-xl"
+              style={{
+                background: 'linear-gradient(to bottom, rgba(10,28,24,0.7), rgba(0,0,0,0.3))',
+                marginTop: '-2px',
+                filter: 'blur(1px)',
+              }}
+            />
           </div>
         </div>
 
@@ -254,47 +352,53 @@ export function LoginScreen() {
           </motion.div>
         ) : (
           <motion.div
+            ref={authPanelRef}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="panel-glass rounded-[2rem] p-6 lg:p-8 w-full shadow-2xl relative flex flex-col justify-center items-center"
+            className="panel-glass rounded-[2rem] p-6 lg:p-8 w-full shadow-2xl relative flex flex-col items-center"
           >
-            {/* By forcing path="/" and routing="path", Clerk is tricked into believing it is 
-                always exactly on the right page, completely disabling its external redirect logic. */}
+            {/* ── Header Row: Demo Button & Tab Switcher ── */}
+            <div className="w-full flex justify-between items-center mb-6">
+              <button
+                onClick={handleDemoLogin}
+                className="text-xs font-bold px-4 py-2 rounded-xl bg-brand-500/10 hover:bg-brand-500/20 text-brand-500 border border-brand-500/20 transition-colors flex items-center gap-2"
+              >
+                <CreditCard size={14} /> Try Demo
+              </button>
+              
+              <div className="inline-flex p-1 rounded-xl bg-canvas-200/50 dark:bg-white/[0.04] border border-white/[0.06] backdrop-blur-sm">
+                <button
+                  onClick={() => setMode('signin')}
+                  className={cn(
+                    'px-6 py-2 rounded-lg text-sm font-bold transition-all duration-200',
+                    mode === 'signin'
+                      ? 'bg-brand-500 text-white shadow-ag-glow-primary'
+                      : 'text-ink-tertiary hover:text-ink-secondary'
+                  )}
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => setMode('signup')}
+                  className={cn(
+                    'px-6 py-2 rounded-lg text-sm font-bold transition-all duration-200',
+                    mode === 'signup'
+                      ? 'bg-brand-500/60 text-white/90'
+                      : 'text-ink-tertiary hover:text-ink-secondary'
+                  )}
+                >
+                  Sign Up
+                </button>
+              </div>
+            </div>
+
+            {/* ── Clerk Auth Form ── */}
             <div className="w-full">
               {mode === 'signin' ? (
                 <SignIn routing="path" path="/" signUpUrl="/" />
               ) : (
                 <SignUp routing="path" path="/" signInUrl="/" />
-              )}
-            </div>
-
-            {/* Custom SPA Navigation Toggle */}
-            <div className="text-center mt-2 z-10 relative bg-transparent">
-              {mode === 'signin' ? (
-                <p className="text-ink-secondary text-sm">
-                  Don't have an account?{' '}
-                  <button 
-                    onClick={() => {
-                      setMode('signup');
-                    }}
-                    className="text-brand-500 hover:text-brand-600 font-bold transition-colors"
-                  >
-                    Sign up
-                  </button>
-                </p>
-              ) : (
-                <p className="text-ink-secondary text-sm">
-                  Already have an account?{' '}
-                  <button 
-                    onClick={() => {
-                      setMode('signin');
-                    }}
-                    className="text-brand-500 hover:text-brand-600 font-bold transition-colors"
-                  >
-                    Sign in
-                  </button>
-                </p>
               )}
             </div>
           </motion.div>
