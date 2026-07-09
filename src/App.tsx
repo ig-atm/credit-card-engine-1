@@ -9,7 +9,6 @@ import {
   FileText,
   ShieldCheck,
   BarChart3,
-  Sparkles,
   Plus,
   X,
   Search,
@@ -40,6 +39,8 @@ import { BankLogo } from './features/cards/components/BankLogo';
 import { CardBenefitsSheet } from './features/cards/components/CardBenefitsSheet';
 import { PerksDashboard } from './features/finix/components/PerksDashboard';
 import { BudgetingPanel } from './features/finix/components/BudgetingPanel';
+import { CardComparisonPanel } from './features/finix/components/CardComparisonPanel';
+import { SmartAlerts } from './features/finix/components/SmartAlerts';
 
 
 
@@ -377,32 +378,10 @@ function HomeTab() {
                   iconColor="text-steel-500"
                 />
 
-                {/* Insights teaser with animated gradient border */}
-                <motion.div
-                  whileHover={{ y: -3, scale: 1.01 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                  className={cn(
-                    'panel-glass rounded-2xl p-5 flex flex-col justify-between h-44',
-                    'cursor-pointer group relative overflow-hidden',
-                    'border-gradient-animated',
-                  )}
-                >
-                  {/* Ambient glow blob */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-copper-500/10 dark:bg-copper-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none group-hover:scale-125 transition-transform duration-700" />
-
-                  <div className="flex items-center justify-between relative z-10">
-                    <p className="text-sm font-semibold text-ink-secondary">Smart Insight</p>
-                    <div className="w-9 h-9 rounded-xl bg-copper-50 dark:bg-copper-500/10 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
-                      <Sparkles size={17} strokeWidth={2.2} className="text-copper-500" />
-                    </div>
-                  </div>
-                  <div className="relative z-10 pt-2">
-                    <p className="text-sm font-medium text-ink-primary leading-snug">
-                      Dining expenses down <span className="text-profit font-bold">15%</span> this week.
-                      Great job managing your spend!
-                    </p>
-                  </div>
-                </motion.div>
+                {/* Smart Alerts — dynamic insights */}
+                <div className="panel-glass rounded-2xl p-5 flex flex-col justify-between min-h-[176px] border-gradient-animated relative overflow-hidden">
+                  <SmartAlerts />
+                </div>
               </>
             )}
           </div>
@@ -814,14 +793,62 @@ function HomeTab() {
 //  ANALYZE TAB
 // ─────────────────────────────────────────────────────────────────────────────
 
+type AnalyzeTabId = 'recommend' | 'compare';
+
+const ANALYZE_TABS: { id: AnalyzeTabId; label: string; icon: typeof Search }[] = [
+  { id: 'recommend', label: 'Recommend', icon: Search },
+  { id: 'compare',   label: 'Compare',   icon: BarChart3 },
+];
+
 function AnalyzeTab() {
+  const [activeTab, setActiveTab] = useState<AnalyzeTabId>('recommend');
+
   return (
     <PageContainer
-      title="Card Analyzer"
-      subtitle="Get personalized credit card recommendations for your profile"
+      title={activeTab === 'recommend' ? 'Card Analyzer' : 'Card Comparison'}
+      subtitle={activeTab === 'recommend' ? 'Get personalized credit card recommendations' : 'Compare cards side-by-side across all dimensions'}
     >
+      {/* Sub-tabs */}
+      <div className="flex gap-1 bg-canvas-200/60 dark:bg-canvas-300/30 rounded-2xl p-1 backdrop-blur-sm">
+        {ANALYZE_TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setActiveTab(id)}
+            className={cn(
+              'relative flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200',
+              activeTab === id
+                ? 'text-ink-primary'
+                : 'text-ink-tertiary hover:text-ink-secondary',
+            )}
+          >
+            {activeTab === id && (
+              <motion.div
+                layoutId="analyze-tab-bg"
+                className="absolute inset-0 bg-surface dark:bg-surface-raised shadow-ag-base rounded-xl"
+                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center gap-2">
+              <Icon size={14} />
+              {label}
+            </span>
+          </button>
+        ))}
+      </div>
+
       <div className="panel-glass rounded-3xl p-6">
-        <RecommenderPanel />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            {activeTab === 'recommend' && <RecommenderPanel />}
+            {activeTab === 'compare'   && <CardComparisonPanel />}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </PageContainer>
   );

@@ -17,7 +17,8 @@ import {
   HeartPulse,
   Car,
   Music,
-  Tag
+  Tag,
+  ExternalLink
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { useDashboardStore } from '../../dashboard/store/dashboardStore';
@@ -37,6 +38,33 @@ function formatINR(val: number) {
     return `₹${(val / 100000).toFixed(1)} Lakh`;
   }
   return `₹${val.toLocaleString('en-IN')}`;
+}
+
+const BANK_APPLY_URLS: Record<string, string> = {
+  'HDFC':    'https://www.hdfcbank.com/personal/pay/cards/credit-cards',
+  'SBI':     'https://www.sbicard.com/en/apply-now.page',
+  'ICICI':   'https://www.icicibank.com/card/credit-cards',
+  'Axis':    'https://www.axisbank.com/retail/cards/credit-card',
+  'Kotak':   'https://www.kotak.com/en/personal-banking/cards/credit-cards.html',
+  'AMEX':    'https://www.americanexpress.com/in/credit-cards/',
+  'RBL':     'https://www.rblbank.com/credit-cards',
+  'IndusInd':'https://www.indusind.com/in/en/personal/cards/credit-card.html',
+  'YES':     'https://www.yesbank.in/personal-banking/yes-individual/cards/credit-cards',
+  'BOB':     'https://www.bankofbaroda.in/personal-banking/digital-products/cards/credit-cards',
+  'HSBC':    'https://www.hsbc.co.in/credit-cards/',
+  'Citi':    'https://www.online.citibank.co.in/products-services/credit-cards/credit-cards.htm',
+  'SC':      'https://www.sc.com/in/credit-cards/',
+  'IOB':     'https://www.iob.in/Credit-Card',
+  'PNB':     'https://www.pnbcard.in/',
+  'AU':      'https://www.aubank.in/personal-banking/credit-card',
+  'Federal': 'https://www.federalbank.co.in/credit-card',
+  'IDFC':    'https://www.idfcfirstbank.com/credit-card',
+  'OneCard': 'https://www.getonecard.app/',
+  'Uni':     'https://www.uni.cards/',
+};
+
+function getApplyUrl(bank: string): string | null {
+  return BANK_APPLY_URLS[bank] || null;
 }
 
 const CATEGORY_ICONS: Record<string, any> = {
@@ -230,6 +258,18 @@ function ResultCard({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Apply Now Button */}
+      {getApplyUrl(card.bank) && (
+        <a
+          href={getApplyUrl(card.bank)!}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-1 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold transition-all active:scale-[0.98] shadow-ag-glow-primary"
+        >
+          Apply Now <ExternalLink size={14} />
+        </a>
+      )}
     </motion.div>
   );
 }
