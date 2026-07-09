@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreditCard, BookOpen, X, ChevronRight, Info } from 'lucide-react';
-import { SignIn, SignUp, useUser } from '@clerk/clerk-react';
+import { SignIn, SignUp, useUser } from '../../../lib/clerk-mock';
 import { useDashboardStore } from '../store/dashboardStore';
 import type { AppProfile } from '../types/dashboard.types';
 import { CreditScoreDial } from '../../../components/ui/CreditScoreDial';

@@ -4,6 +4,7 @@ import { User, ShieldCheck, Coins, Mail, Phone, CheckCircle2, UserCheck } from '
 import { cn } from '../../../lib/utils';
 import { useDashboardStore } from '../store/dashboardStore';
 import type { AppProfile } from '../types/dashboard.types';
+import { ShareableScorecard } from './ShareableScorecard';
 
 const AVATAR_SEEDS = ['Atharva', 'Aria', 'Kabir', 'Zoe', 'Rohan', 'Elena'];
 
@@ -271,6 +272,12 @@ export function ProfileTab() {
           <UserCheck size={16} /> Save Changes
         </button>
       </form>
+
+      {/* ── Shareable Scorecard ─────────────────────────────────── */}
+      <div className="mt-2 pt-5 border-t border-white/[0.05]">
+        <p className="text-xs font-bold text-ink-tertiary uppercase tracking-wider mb-3">Share</p>
+        <ShareableScorecard />
+      </div>
     </div>
   );
 }

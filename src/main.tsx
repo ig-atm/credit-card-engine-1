@@ -1,9 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { dark } from '@clerk/themes'
+import { dark, ClerkProvider } from './lib/clerk-mock'
 import './index.css'
 import App from './App.tsx'
-import { ClerkProvider } from '@clerk/clerk-react'
 import * as Sentry from "@sentry/react";
 import posthog from 'posthog-js'
 import { PostHogProvider } from 'posthog-js/react'
@@ -12,11 +11,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { Toaster } from 'sonner'
 
 // Import your publishable key
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
-
-if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Publishable Key")
-}
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'mock_key'
 
 const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN
 if (SENTRY_DSN) {

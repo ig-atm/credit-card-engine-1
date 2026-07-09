@@ -15,6 +15,7 @@ import {
   Trash2,
   Info,
   Target,
+  Calculator,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -41,6 +42,9 @@ import { PerksDashboard } from './features/finix/components/PerksDashboard';
 import { BudgetingPanel } from './features/finix/components/BudgetingPanel';
 import { CardComparisonPanel } from './features/finix/components/CardComparisonPanel';
 import { SmartAlerts } from './features/finix/components/SmartAlerts';
+import { MonthlyReport } from './features/dashboard/components/MonthlyReport';
+import { CreditScoreSimulator } from './features/finix/components/CreditScoreSimulator';
+import { EmiCalculatorPanel } from './features/finix/components/EmiCalculatorPanel';
 
 
 
@@ -60,8 +64,8 @@ function getGreeting(): string {
 //  WALLET & INSIGHTS TAB TYPES
 // ─────────────────────────────────────────────────────────────────────────────
 
-type WalletTabId = 'optimizer' | 'upi' | 'bills';
-type InsightsTabId = 'insights' | 'cibil' | 'budget';
+type WalletTabId = 'optimizer' | 'upi' | 'bills' | 'emi';
+type InsightsTabId = 'insights' | 'cibil' | 'budget' | 'report' | 'simulator';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  PAGE CONTAINER — reusable wrapper for sub-pages
@@ -232,11 +236,11 @@ function HomeTab() {
           {/* Cards View: Carousel on Mobile, Grid on Desktop */}
           {isBooting ? (
             <div className="flex sm:grid sm:grid-cols-2 overflow-x-hidden gap-6 pb-8 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
-              <Skeleton className="w-[85vw] sm:w-auto h-[230px] shrink-0" />
-              <Skeleton className="w-[85vw] sm:w-auto h-[230px] shrink-0 hidden sm:block" />
+              <Skeleton className="w-[78vw] sm:w-auto h-[230px] shrink-0" />
+              <Skeleton className="w-[78vw] sm:w-auto h-[230px] shrink-0 hidden sm:block" />
             </div>
           ) : (
-            <div className="flex sm:grid sm:grid-cols-2 overflow-x-auto sm:overflow-visible gap-6 pb-8 sm:pb-0 snap-x snap-mandatory sm:snap-none hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex sm:grid sm:grid-cols-2 overflow-x-auto sm:overflow-visible gap-6 pt-6 pb-8 sm:pt-0 sm:pb-0 snap-x snap-mandatory sm:snap-none hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
               {userCards.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -286,23 +290,25 @@ function HomeTab() {
                   onClick={() => setActiveCard(card.id)}
                   whileTap={{ scale: 0.98 }}
                   className={cn(
-                    'snap-center shrink-0 w-[85vw] sm:w-auto flex flex-col gap-3 cursor-pointer transition-all duration-300 rounded-3xl p-3',
+                    'snap-center shrink-0 w-[78vw] sm:w-auto flex flex-col gap-3 cursor-pointer transition-all duration-300 rounded-3xl p-3',
                     isActive
                       ? 'opacity-100 ring-2 ring-brand-500/50 ring-offset-2 ring-offset-canvas-100 dark:ring-offset-canvas-50 bg-surface/30'
                       : 'opacity-60 hover:opacity-100 hover:-translate-y-1',
                   )}
                 >
-                  <div className="flex items-center justify-between px-1">
-                    <span className="text-[10px] font-semibold tracking-[0.2em] uppercase text-ink-tertiary flex items-center gap-1.5 truncate max-w-[120px]">
-                      {card.label || 'Credit Card'}
+                  <div className="flex items-center justify-between px-1 gap-2">
+                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                      <span className="text-[10px] font-semibold tracking-[0.2em] uppercase text-ink-tertiary truncate">
+                        {card.label || 'Credit Card'}
+                      </span>
                       {isActive && (
                         <motion.span
                           layoutId="card-active-dot"
                           className="w-1.5 h-1.5 rounded-full bg-brand-500 flex-shrink-0"
                         />
                       )}
-                    </span>
-                    <div className="flex items-center gap-2">
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <span className="text-[10px] font-semibold text-brand-500 bg-brand-50 dark:bg-brand-500/10 px-2.5 py-1 rounded-full whitespace-nowrap">
                         {formatCents(cardWithLiveCredit.availableCredit)} avail.
                       </span>
@@ -379,7 +385,7 @@ function HomeTab() {
                 />
 
                 {/* Smart Alerts — dynamic insights */}
-                <div className="panel-glass rounded-2xl p-5 flex flex-col justify-between min-h-[176px] border-gradient-animated relative overflow-hidden">
+                <div className="panel-glass rounded-2xl p-5 flex flex-col justify-between h-44 border-gradient-animated relative overflow-hidden">
                   <SmartAlerts />
                 </div>
               </>
@@ -862,6 +868,7 @@ const WALLET_TABS: { id: WalletTabId; label: string; icon: typeof CreditCard }[]
   { id: 'optimizer', label: 'Optimizer', icon: CreditCard },
   { id: 'upi',       label: 'Pay',       icon: Zap        },
   { id: 'bills',     label: 'Bills',     icon: FileText   },
+  { id: 'emi',       label: 'EMI',       icon: Calculator },
 ];
 
 function WalletTab() {
@@ -871,6 +878,7 @@ function WalletTab() {
     optimizer: { title: 'Wallet Optimizer',  subtitle: 'Best card for every spend category'     },
     upi:       { title: 'UPI Simulator',     subtitle: 'Find the optimal card for any payment'  },
     bills:     { title: 'Bill Tracker',      subtitle: 'Upcoming and overdue bills at a glance' },
+    emi:       { title: 'EMI Calculator',    subtitle: 'Plan big purchases & find the best card to convert' },
   };
 
   return (
@@ -918,6 +926,7 @@ function WalletTab() {
             {activeTab === 'optimizer' && <WalletOptimizerPanel />}
             {activeTab === 'upi'       && <UpiSimulatorPanel />}
             {activeTab === 'bills'     && <BillTrackerPanel />}
+            {activeTab === 'emi'       && <EmiCalculatorPanel />}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -930,9 +939,11 @@ function WalletTab() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const INSIGHTS_TABS: { id: InsightsTabId; label: string; icon: typeof BarChart3 }[] = [
-  { id: 'insights', label: 'Insights', icon: BarChart3   },
-  { id: 'budget',   label: 'Budget',   icon: Target      },
-  { id: 'cibil',    label: 'CIBIL',    icon: ShieldCheck },
+  { id: 'insights',  label: 'Insights',   icon: BarChart3   },
+  { id: 'budget',    label: 'Budget',     icon: Target      },
+  { id: 'cibil',     label: 'CIBIL',      icon: ShieldCheck },
+  { id: 'simulator', label: 'Simulator',  icon: Zap         },
+  { id: 'report',    label: 'Report',     icon: FileText    },
 ];
 
 function InsightsTab() {
@@ -940,8 +951,8 @@ function InsightsTab() {
 
   return (
     <PageContainer
-      title={activeTab === 'insights' ? 'Spend Insights' : activeTab === 'budget' ? 'Category Budgets' : 'CIBIL Score'}
-      subtitle={activeTab === 'insights' ? 'Smart analysis of your spending patterns' : activeTab === 'budget' ? 'Track your credit health and budgets' : 'Your credit health report'}
+      title={activeTab === 'insights' ? 'Spend Insights' : activeTab === 'budget' ? 'Category Budgets' : activeTab === 'report' ? 'Monthly Report' : activeTab === 'simulator' ? 'Score Simulator' : 'CIBIL Score'}
+      subtitle={activeTab === 'insights' ? 'Smart analysis of your spending patterns' : activeTab === 'budget' ? 'Track your credit health and budgets' : activeTab === 'report' ? 'Detailed breakdown of your monthly spending' : activeTab === 'simulator' ? 'See how your actions impact your credit score' : 'Your credit health report'}
     >
       {/* Sub-tabs */}
       <div className="flex gap-1 bg-canvas-200/60 dark:bg-canvas-300/30 rounded-2xl p-1 backdrop-blur-sm">
@@ -980,9 +991,11 @@ function InsightsTab() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
           >
-            {activeTab === 'insights' && <InsightsPanel />}
-            {activeTab === 'budget'   && <BudgetingPanel />}
-            {activeTab === 'cibil'    && <CibilPanel />}
+            {activeTab === 'insights'  && <InsightsPanel />}
+            {activeTab === 'budget'    && <BudgetingPanel />}
+            {activeTab === 'cibil'     && <CibilPanel />}
+            {activeTab === 'simulator' && <CreditScoreSimulator />}
+            {activeTab === 'report'    && <MonthlyReport />}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -1046,9 +1059,18 @@ export default function App() {
   const profile = useDashboardStore((s) => s.profile);
   const isHydrated = useHydration();
 
-  // Always force dark mode as per user request
+  // Always force dark mode as per user request and listen for navigation events
   useEffect(() => {
     document.documentElement.classList.add('dark');
+
+    const handleNavigate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        setActiveTab(customEvent.detail as TabId);
+      }
+    };
+    window.addEventListener('NAVIGATE_TAB', handleNavigate);
+    return () => window.removeEventListener('NAVIGATE_TAB', handleNavigate);
   }, []);
 
   if (!isHydrated) {
