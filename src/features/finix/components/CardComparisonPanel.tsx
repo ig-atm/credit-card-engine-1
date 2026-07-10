@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, X, Plus, Scale, Check,
@@ -98,13 +98,13 @@ function CardPicker({ onSelect, onClose, excludeIds }: {
           <div className="relative">
             <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-tertiary" />
             <input type="text" placeholder="Search by bank or card name..." value={query} onChange={(e) => setQuery(e.target.value)}
-              className="w-full input-premium pl-10 py-2.5 text-sm" autoFocus />
+              className="input-search" autoFocus />
           </div>
           <div className="flex gap-2 flex-wrap">
             {['', 'HDFC Bank', 'SBI Card', 'Axis Bank', 'ICICI Bank'].map((b) => (
               <button key={b || 'all'} onClick={() => setBankFilter(b)}
                 className={cn('text-[11px] font-bold px-3 py-1 rounded-full transition-all',
-                  bankFilter === b ? 'bg-brand-500 text-white' : 'bg-canvas-300/50 dark:bg-white/[0.05] text-ink-tertiary hover:text-ink-secondary')}>
+                  bankFilter === b ? 'bg-secondary-400 text-neutral-900' : 'bg-canvas-300/50 dark:bg-white/[0.05] text-ink-tertiary hover:text-ink-secondary')}>
                 {b === '' ? 'All Banks' : b.replace(' Bank', '').replace(' Card', '')}
               </button>
             ))}

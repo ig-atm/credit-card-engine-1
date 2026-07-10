@@ -346,7 +346,7 @@ function PayBillModal({ bill, onClose }: PayBillModalProps) {
 
             <button
               type="submit"
-              className="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm py-3 rounded-full flex items-center justify-center gap-2 shadow-ag-glow-primary transition-all active:scale-95 mt-2"
+              className="w-full btn-primary py-3 mt-2 flex items-center justify-center gap-2 shadow-ag-glow-primary active:scale-95"
             >
               Pay Securely ₹{parseFloat(payAmount || '0').toLocaleString('en-IN')}
             </button>
@@ -511,7 +511,7 @@ export function BillTrackerPanel() {
                 <button
                   type="button"
                   onClick={() => setPayingBill(bill)}
-                  className="text-xs font-bold text-white bg-brand-500 hover:bg-brand-600 px-3.5 py-1.5 rounded-xl shadow-sm transition-all active:scale-95"
+                  className="btn-primary text-xs px-3.5 py-1.5 active:scale-95"
                 >
                   Pay Now
                 </button>

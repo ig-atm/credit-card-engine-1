@@ -265,7 +265,7 @@ function ResultCard({
           href={getApplyUrl(card.bank)!}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-1 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold transition-all active:scale-[0.98] shadow-ag-glow-primary"
+          className="mt-1 w-full btn-primary py-2.5 flex items-center justify-center gap-2 shadow-ag-glow-primary active:scale-[0.98]"
         >
           Apply Now <ExternalLink size={14} />
         </a>
@@ -416,7 +416,7 @@ export function RecommenderPanel() {
               className={cn(
                 'w-full flex items-center justify-center gap-2 font-semibold text-sm py-3 rounded-full transition-all duration-150 active:scale-95 mt-2',
                 categories.length > 0
-                  ? 'bg-brand-500 hover:bg-brand-600 text-white shadow-ag-glow-primary'
+                  ? 'btn-primary shadow-ag-glow-primary'
                   : 'bg-canvas-200 text-ink-disabled cursor-not-allowed'
               )}
             >
@@ -556,7 +556,7 @@ export function RecommenderPanel() {
               <div className="mt-4 pt-3 border-t border-canvas-200/50 dark:border-white/[0.04] text-center">
                 <button
                   onClick={() => setShowBlog(false)}
-                  className="bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs px-6 py-2 rounded-full transition-all active:scale-95"
+                  className="btn-primary active:scale-95"
                 >
                   Got It, Thanks!
                 </button>

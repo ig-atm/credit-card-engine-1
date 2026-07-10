@@ -64,6 +64,30 @@
     --color-brand-800: 15 41 36;
     --color-brand-900: 10 28 24;
 
+    /* Secondary (Teal) */
+    --color-secondary-50: 240 253 250;
+    --color-secondary-100: 204 251 241;
+    --color-secondary-200: 153 246 228;
+    --color-secondary-300: 94 234 212;
+    --color-secondary-400: 45 212 191;
+    --color-secondary-500: 20 184 166;
+    --color-secondary-600: 13 148 136;
+    --color-secondary-700: 15 118 110;
+    --color-secondary-800: 17 94 89;
+    --color-secondary-900: 19 78 74;
+
+    /* Tertiary (Amber) */
+    --color-tertiary-50: 255 251 235;
+    --color-tertiary-100: 254 243 199;
+    --color-tertiary-200: 253 230 138;
+    --color-tertiary-300: 252 211 77;
+    --color-tertiary-400: 251 191 36;
+    --color-tertiary-500: 245 158 11;
+    --color-tertiary-600: 217 119 6;
+    --color-tertiary-700: 180 83 9;
+    --color-tertiary-800: 146 64 14;
+    --color-tertiary-900: 120 53 15;
+
     /* Copper */
     --color-copper-50: 253 245 241;
     --color-copper-100: 251 236 227;
@@ -119,18 +143,18 @@
   }
 
   .dark {
-    /* Canvas (dark mode) — deep forest slate with depth */
-    --color-canvas-50: 12 16 14;
-    --color-canvas-100: 8 11 10;
-    --color-canvas-200: 16 22 20;
-    --color-canvas-300: 24 34 30;
+    /* Canvas (dark mode) — UI Kit Neutral #0A0C0B */
+    --color-canvas-50: 10 12 11;
+    --color-canvas-100: 14 17 15;
+    --color-canvas-200: 20 24 22;
+    --color-canvas-300: 28 34 31;
 
-    /* Surface — dark elevated with glass tint */
-    --color-surface: 16 22 20;
-    --color-surface-muted: 12 16 14;
-    --color-surface-raised: 24 34 30;
+    /* Surface — UI Kit elevated */
+    --color-surface: 20 24 22;
+    --color-surface-muted: 10 12 11;
+    --color-surface-raised: 28 34 31;
 
-    /* Brand — inverted for readability on dark */
+    /* Brand (Primary) — UI Kit #1F5247 (31 82 71) */
     --color-brand-50: 10 28 24;
     --color-brand-100: 15 41 36;
     --color-brand-200: 20 54 47;
@@ -141,6 +165,30 @@
     --color-brand-700: 179 215 204;
     --color-brand-800: 217 235 228;
     --color-brand-900: 240 248 245;
+
+    /* Secondary (Teal) — UI Kit #2DD4BF (45 212 191) */
+    --color-secondary-50: 240 253 250;
+    --color-secondary-100: 204 251 241;
+    --color-secondary-200: 153 246 228;
+    --color-secondary-300: 94 234 212;
+    --color-secondary-400: 45 212 191;
+    --color-secondary-500: 20 184 166;
+    --color-secondary-600: 13 148 136;
+    --color-secondary-700: 15 118 110;
+    --color-secondary-800: 17 94 89;
+    --color-secondary-900: 19 78 74;
+
+    /* Tertiary (Amber) — UI Kit #F59E0B (245 158 11) */
+    --color-tertiary-50: 255 251 235;
+    --color-tertiary-100: 254 243 199;
+    --color-tertiary-200: 253 230 138;
+    --color-tertiary-300: 252 211 77;
+    --color-tertiary-400: 251 191 36;
+    --color-tertiary-500: 245 158 11;
+    --color-tertiary-600: 217 119 6;
+    --color-tertiary-700: 180 83 9;
+    --color-tertiary-800: 146 64 14;
+    --color-tertiary-900: 120 53 15;
 
     /* Copper */
     --color-copper-50: 78 39 18;
@@ -350,6 +398,86 @@
     background: rgb(var(--color-surface-raised) / 0.6);
     border-color: rgb(var(--color-brand-500) / 0.4);
     box-shadow: 0 0 0 3px rgb(var(--color-brand-500) / 0.12);
+  }
+
+  /* ── UI Kit Specific Components ── */
+  .btn-base {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    border-radius: 9999px; /* Pill */
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  /* Teal button (Labeled Primary in UI Kit) */
+  .btn-primary {
+    background-color: rgb(var(--color-secondary-400));
+    color: rgb(10, 12, 11); /* Dark text for contrast on teal */
+    border: 1px solid transparent;
+  }
+  .btn-primary:hover {
+    background-color: rgb(var(--color-secondary-300));
+  }
+
+  /* Dark elevated button */
+  .btn-secondary {
+    background-color: rgb(var(--color-canvas-200));
+    color: rgb(var(--color-ink-primary));
+    border: 1px solid rgb(var(--color-ink-primary) / 0.05);
+  }
+  .btn-secondary:hover {
+    background-color: rgb(var(--color-canvas-300));
+  }
+
+  /* Inverted (White) */
+  .btn-inverted {
+    background-color: #ffffff;
+    color: #0A0C0B;
+    border: 1px solid transparent;
+  }
+  .btn-inverted:hover {
+    background-color: #f3f4f6;
+  }
+
+  /* Outlined */
+  .btn-outlined {
+    background-color: transparent;
+    color: rgb(var(--color-ink-primary));
+    border: 1px solid rgb(var(--color-ink-primary) / 0.2);
+  }
+  .btn-outlined:hover {
+    background-color: rgb(var(--color-canvas-200) / 0.5);
+  }
+
+  /* Search Input */
+  .input-search {
+    background-color: rgb(var(--color-canvas-200) / 0.8);
+    border: 1px solid rgb(var(--color-ink-primary) / 0.08);
+    border-radius: 0.75rem;
+    padding: 0.625rem 1rem 0.625rem 2.5rem;
+    font-size: 0.875rem;
+    color: rgb(var(--color-ink-primary));
+    width: 100%;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+  .input-search:focus {
+    border-color: rgb(var(--color-secondary-400) / 0.5);
+  }
+
+  /* Icon Wrappers */
+  .icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    width: 2.5rem;
+    height: 2.5rem;
   }
 }
 

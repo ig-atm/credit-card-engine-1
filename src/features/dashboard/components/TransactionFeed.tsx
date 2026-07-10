@@ -195,7 +195,7 @@ function QuickAddForm({ onClose, activeCardId }: QuickAddFormProps) {
                   className={cn(
                     'text-[10px] font-semibold px-2.5 py-1 rounded-full transition-all duration-150',
                     category === value
-                      ? 'bg-brand-500 text-white shadow-ag-glow-primary'
+                      ? 'btn-primary shadow-ag-glow-primary'
                       : 'bg-canvas-200 dark:bg-white/[0.04] text-ink-secondary hover:bg-canvas-300 dark:hover:bg-white/[0.08]',
                   )}
                   aria-pressed={category === value}
@@ -218,7 +218,7 @@ function QuickAddForm({ onClose, activeCardId }: QuickAddFormProps) {
                 type="submit"
                 className={cn(
                   'text-xs font-semibold text-white px-4 py-1.5 rounded-full',
-                  'bg-brand-500 hover:bg-brand-600 shadow-ag-glow-primary',
+                  'btn-primary shadow-ag-glow-primary',
                   'transition-all duration-150 active:scale-95',
                 )}
               >
@@ -267,7 +267,7 @@ function QuickAddForm({ onClose, activeCardId }: QuickAddFormProps) {
                   <button
                     type="button"
                     onClick={handleParseSms}
-                    className="text-xs font-semibold text-white px-4 py-1.5 rounded-full bg-brand-500 hover:bg-brand-600 shadow-ag-glow-primary transition-all active:scale-95"
+                    className="text-xs font-semibold text-white px-4 py-1.5 rounded-full btn-primary shadow-ag-glow-primary transition-all active:scale-95"
                   >
                     Auto Parse SMS
                   </button>

@@ -267,7 +267,7 @@ export function ProfileTab() {
 
         <button
           type="submit"
-          className="mt-4 w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm py-3 rounded-full flex items-center justify-center gap-2 shadow-ag-glow-primary transition-all active:scale-[0.98]"
+          className="mt-4 w-full btn-primary py-3 flex items-center justify-center gap-2 shadow-ag-glow-primary active:scale-[0.98]"
         >
           <UserCheck size={16} /> Save Changes
         </button>

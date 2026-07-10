@@ -264,7 +264,7 @@ export function LoginScreen() {
                     className={cn(
                       "flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all border",
                       salary === val 
-                        ? "bg-brand-500 text-white border-brand-500 shadow-ag-glow-primary" 
+                        ? "btn-primary shadow-ag-glow-primary" 
                         : "bg-surface border-canvas-300 dark:border-white/5 text-ink-secondary hover:bg-canvas-200"
                     )}
                   >
@@ -340,7 +340,7 @@ export function LoginScreen() {
             <button
               type="button"
               onClick={handleFinalSubmit}
-              className="mt-4 w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm py-3 rounded-full flex items-center justify-center gap-2 shadow-ag-glow-primary transition-all active:scale-[0.98]"
+              className="mt-4 w-full btn-primary py-3 flex items-center justify-center gap-2 shadow-ag-glow-primary active:scale-[0.98]"
             >
               Generate Dashboard <ChevronRight size={16} />
             </button>
@@ -373,7 +373,7 @@ export function LoginScreen() {
                   className={cn(
                     'px-6 py-2 rounded-lg text-sm font-bold transition-all duration-200',
                     mode === 'signin'
-                      ? 'bg-brand-500 text-white shadow-ag-glow-primary'
+                      ? 'btn-primary shadow-ag-glow-primary'
                       : 'text-ink-tertiary hover:text-ink-secondary'
                   )}
                 >
@@ -384,7 +384,7 @@ export function LoginScreen() {
                   className={cn(
                     'px-6 py-2 rounded-lg text-sm font-bold transition-all duration-200',
                     mode === 'signup'
-                      ? 'bg-brand-500/60 text-white/90'
+                      ? 'btn-primary opacity-80'
                       : 'text-ink-tertiary hover:text-ink-secondary'
                   )}
                 >
@@ -446,7 +446,7 @@ export function LoginScreen() {
               <div className="mt-4 pt-3 border-t border-canvas-200/50 dark:border-white/[0.04] text-center">
                 <button
                   onClick={() => setShowBlog(false)}
-                  className="bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs px-6 py-2 rounded-full transition-all active:scale-95"
+                  className="btn-primary active:scale-95"
                 >
                   Got It, Thanks!
                 </button>
@@ -509,7 +509,7 @@ export function LoginScreen() {
               <div className="mt-4 pt-3 border-t border-canvas-200/50 dark:border-white/[0.04] text-center">
                 <button
                   onClick={() => setShowLegal(null)}
-                  className="bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs px-6 py-2 rounded-full transition-all active:scale-95"
+                  className="btn-primary active:scale-95"
                 >
                   Close
                 </button>

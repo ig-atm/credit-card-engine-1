@@ -325,7 +325,7 @@ export function BudgetingPanel() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-3 rounded-xl font-bold text-white bg-brand-500 hover:bg-brand-600 transition-colors"
+                    className="flex-1 btn-primary py-3"
                   >
                     Add Budget
                   </button>
