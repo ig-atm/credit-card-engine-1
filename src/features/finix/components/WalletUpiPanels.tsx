@@ -141,9 +141,28 @@ function WalletOptimizerTab() {
           <p className="text-xs text-ink-tertiary mt-1">Add cards to optimize your category spending.</p>
         </div>
       ) : (
-        WALLET_CATEGORIES.map((cat) => {
-          const result = getBestCardForCategory(cat, userCards);
-          if (!result) return null;
+        <div className="flex flex-col gap-4">
+          <div className="mb-4">
+            <p className="text-sm font-bold text-ink-primary mb-3">Cards in Wallet</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {userCards.map((c) => (
+                <div key={c.id} className="panel-glass rounded-2xl p-4 border border-canvas-200/50 dark:border-white/[0.04] shadow-sm flex items-center gap-3">
+                  <BankLogo bank={c.bank || 'Unknown'} className="w-12 h-8" />
+                  <div className="flex flex-col min-w-0">
+                    <p className="text-sm font-semibold text-ink-primary truncate">{c.label}</p>
+                    <p className="text-xs text-ink-tertiary">•• {c.pan.slice(-4)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-bold text-ink-primary mb-3">Category Recommendations</p>
+            <div className="flex flex-col gap-3">
+              {WALLET_CATEGORIES.map((cat) => {
+                const result = getBestCardForCategory(cat, userCards);
+                if (!result) return null;
           const { card, rate } = result;
 
           return (
@@ -168,8 +187,11 @@ function WalletOptimizerTab() {
                 <p className="text-[10px] text-ink-disabled">rewards</p>
               </div>
             </motion.div>
-          );
-        })
+              );
+            })}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Dynamic Searchable Add Card Modal */}
